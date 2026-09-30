@@ -8,7 +8,7 @@
         body {
             background-color: #111827;
             color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -31,7 +31,6 @@
             text-align: center;
             margin: 0 0 5px 0;
             font-size: 2.2rem;
-            letter-spacing: 1px;
         }
         .subtitle {
             color: #9ca3af;
@@ -79,10 +78,6 @@
             border-radius: 8px;
             box-sizing: border-box;
             font-size: 1rem;
-        }
-        select:focus {
-            outline: none;
-            border-color: #2dd4bf;
         }
         .slider-container {
             display: flex;
@@ -146,16 +141,13 @@
         <div class="form-group">
             <label for="text-input">আপনার টেক্সট লিখুন:</label>
             <textarea id="text-input" rows="4" placeholder="এখানে যা লিখবেন তা ভয়েস হয়ে যাবে..."></textarea>
-            <div class="counter"><span id="char-count">0</span> / 500 অক্ষর</div>
+            <div class="counter"><span id="char-count">0</span> অক্ষর</div>
         </div>
 
         <div class="form-group">
             <label for="voice-select">ভয়েস মডেল সিলেক্ট করুন:</label>
             <select id="voice-select">
-                <option value="bn-IN-Wavenet-A">বাংলা এআই ভয়েস ১ (মহিলা - প্রিমিয়াম)</option>
-                <option value="bn-IN-Wavenet-B">বাংলা এআই ভয়েস ২ (পুরুষ - প্রফেশনাল)</option>
-                <option value="bn-BD-Standard-A">বাংলাদেশী অ্যাকসেন্ট ১ (মহিলা)</option>
-                <option value="bn-BD-Standard-B">বাংলাদেশী অ্যাকসেন্ট ২ (পুরুষ)</option>
+                <!-- ব্রাউজারে উপলব্ধ বাংলা ভয়েস স্বয়ংক্রিয়ভাবে লোড হবে -->
             </select>
         </div>
 
@@ -177,11 +169,18 @@
     </div>
 
     <script>
-        let currentBlobUrl = null;
         const textInput = document.getElementById('text-input');
         const charCount = document.getElementById('char-count');
         const speedSlider = document.getElementById('speed-slider');
         const speedVal = document.getElementById('speed-val');
+        const voiceSelect = document.getElementById('voice-select');
+        const audioContainer = document.getElementById('audio-container');
+        const audioPlayer = document.getElementById('audio-player');
+        const btn = document.getElementById('generate-btn');
+
+        let synth = window.speechSynthesis;
+        let voices = [];
+        let currentBlobUrl = null;
 
         // ক্যারেক্টার কাউন্টার আপডেট
         textInput.addEventListener('input', () => {
@@ -193,55 +192,96 @@
             speedVal.innerText = speedSlider.value + 'x';
         });
 
-        document.getElementById('generate-btn').addEventListener('click', async () => {
-            const text = textInput.value.trim();
-            const btn = document.getElementById('generate-btn');
-            const audioContainer = document.getElementById('audio-container');
-            const audioPlayer = document.getElementById('audio-player');
-            const voice = document.getElementById('voice-select').value;
-            const speed = speedSlider.value;
+        // ব্রাউজারের নিজস্ব ভয়েস লিস্ট লোড করা
+        function loadVoices() {
+            voices = synth.getVoices();
+            voiceSelect.innerHTML = '';
             
+            // বাংলা এবং গুগল প্রিমিয়াম ভয়েসগুলো ফিল্টার করা
+            let bnVoices = voices.filter(v => v.lang.includes('bn') || v.lang.includes('IN') || v.lang.includes('BD'));
+            
+            if(bnVoices.length === 0) {
+                // যদি ডিভাইসে বাংলা না থাকে তবে সাধারণ প্রিমিয়াম ভয়েস ব্যাকআপ হিসেবে রাখা
+                bnVoices = voices.filter(v => v.lang.includes('en'));
+            }
+
+            bnVoices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                voiceSelect.appendChild(option);
+            });
+
+            if(voiceSelect.children.length === 0) {
+                const option = document.createElement('option');
+                option.textContent = "ডিভাইস ভয়েস ইঞ্জিন ১ (Default)";
+                option.value = "0";
+                voiceSelect.appendChild(option);
+            }
+        }
+
+        loadVoices();
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
+        btn.addEventListener('click', () => {
+            const text = textInput.value.trim();
             if(!text) {
                 alert("দয়া করে কিছু টেক্সট লিখুন!");
                 return;
             }
-            
+
             btn.disabled = true;
             btn.innerText = "ভয়েস তৈরি হচ্ছে...";
-            audioContainer.classList.add('hidden');
+
+            // ব্রউজার বেসড হাই-স্পিড স্পিচ ইঞ্জিন চালু
+            const utterance = new SpeechSynthesisUtterance(text);
             
-            try {
-                // মাল্টিপল ভয়েস এবং স্পীড কন্ট্রোল যুক্ত ফ্রি ক্লাউড এপিআই ইঞ্জিন
-                const apiVoice = voice.includes('Wavenet-B') || voice.includes('Standard-B') ? 'male' : 'female';
-                const response = await fetch(`https://google.com{speed}&q=${encodeURIComponent(text)}`);
-                
-                if (!response.ok) throw new Error("TTS failed");
-                
-                const blob = await response.blob();
-                
+            let selectedVoiceIndex = voiceSelect.value;
+            let filteredVoices = voices.filter(v => v.lang.includes('bn') || v.lang.includes('IN') || v.lang.includes('BD'));
+            if(filteredVoices.length === 0) filteredVoices = voices.filter(v => v.lang.includes('en'));
+            
+            if(filteredVoices[selectedVoiceIndex]) {
+                utterance.voice = filteredVoices[selectedVoiceIndex];
+            }
+            
+            utterance.rate = speedSlider.value;
+
+            // অডিও আউটপুট ও ডাউনলোড ফাইল প্রসেস করা
+            const mediaStreamAudioDestination = new AudioContext();
+            const audioCtx = mediaStreamAudioDestination;
+            const dest = audioCtx.createMediaStreamDestination();
+            const mediaRecorder = new MediaRecorder(dest.stream);
+            let chunks = [];
+
+            mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'audio/mp3' });
                 if(currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
-                
                 currentBlobUrl = URL.createObjectURL(blob);
                 audioPlayer.src = currentBlobUrl;
                 audioContainer.classList.remove('hidden');
-            } catch (error) {
-                alert("সার্ভার রেসপন্স করছে না, দয়া করে আবার চেষ্টা করুন।");
-            } finally {
+                
                 btn.disabled = false;
                 btn.innerText = "ভয়েস তৈরি করুন";
-            }
+            };
+
+            // লোকাল স্পিচ প্লেব্যাক ইঞ্জিন ট্রিগার
+            synth.speak(utterance);
+            
+            // রিয়েল-টাইম প্লেয়ার সচল করা
+            audioPlayer.src = "";
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerText = "ভয়েস তৈরি করুন";
+                audioContainer.classList.remove('hidden');
+                // ব্রাউজারের নিজস্ব ইন্টারফেস সাপোর্ট
+                audioPlayer.src = `https://google.com{speedSlider.value}&q=${encodeURIComponent(text)}`;
+            }, 600);
         });
 
         document.getElementById('download-btn').addEventListener('click', () => {
-            if (currentBlobUrl) {
+            const text = textInput.value.trim();
+            if(text) {
                 const a = document.createElement('a');
-                a.href = currentBlobUrl;
-                a.download = 'zonixai-pro-voice.mp3';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            }
-        });
-    </script>
-</body>
-</html>
