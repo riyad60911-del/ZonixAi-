@@ -145,9 +145,10 @@
         </div>
 
         <div class="form-group">
-            <label for="voice-select">ভয়েস মডেল সিলেক্ট করুন:</label>
+            <label for="voice-select">ভয়েস ক্যারেক্টার সিলেক্ট করুন:</label>
             <select id="voice-select">
-                <!-- ব্রাউজারে উপলব্ধ বাংলা ভয়েস স্বয়ংক্রিয়ভাবে লোড হবে -->
+                <option value="bn-BD">বাংলা এআই ক্যারেক্টার (Default)</option>
+                <option value="bn-IN">বাংলা প্রিমিয়াম অ্যাকসেন্ট</option>
             </select>
         </div>
 
@@ -178,11 +179,7 @@
         const audioPlayer = document.getElementById('audio-player');
         const btn = document.getElementById('generate-btn');
 
-        let synth = window.speechSynthesis;
-        let voices = [];
-        let currentBlobUrl = null;
-
-        // ক্যারেক্টার কাউন্টার আপডেট
+        // ক্যারেক্টার কাউন্টার রিয়েল-টাইম আপডেট
         textInput.addEventListener('input', () => {
             charCount.innerText = textInput.value.length;
         });
@@ -192,40 +189,7 @@
             speedVal.innerText = speedSlider.value + 'x';
         });
 
-        // ব্রাউজারের নিজস্ব ভয়েস লিস্ট লোড করা
-        function loadVoices() {
-            voices = synth.getVoices();
-            voiceSelect.innerHTML = '';
-            
-            // বাংলা এবং গুগল প্রিমিয়াম ভয়েসগুলো ফিল্টার করা
-            let bnVoices = voices.filter(v => v.lang.includes('bn') || v.lang.includes('IN') || v.lang.includes('BD'));
-            
-            if(bnVoices.length === 0) {
-                // যদি ডিভাইসে বাংলা না থাকে তবে সাধারণ প্রিমিয়াম ভয়েস ব্যাকআপ হিসেবে রাখা
-                bnVoices = voices.filter(v => v.lang.includes('en'));
-            }
-
-            bnVoices.forEach((voice, index) => {
-                const option = document.createElement('option');
-                option.value = index;
-                option.textContent = `${voice.name} (${voice.lang})`;
-                voiceSelect.appendChild(option);
-            });
-
-            if(voiceSelect.children.length === 0) {
-                const option = document.createElement('option');
-                option.textContent = "ডিভাইস ভয়েস ইঞ্জিন ১ (Default)";
-                option.value = "0";
-                voiceSelect.appendChild(option);
-            }
-        }
-
-        loadVoices();
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = loadVoices;
-        }
-
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             const text = textInput.value.trim();
             if(!text) {
                 alert("দয়া করে কিছু টেক্সট লিখুন!");
@@ -234,54 +198,45 @@
 
             btn.disabled = true;
             btn.innerText = "ভয়েস তৈরি হচ্ছে...";
+            audioContainer.classList.add('hidden');
 
-            // ব্রউজার বেসড হাই-স্পিড স্পিচ ইঞ্জিন চালু
-            const utterance = new SpeechSynthesisUtterance(text);
-            
-            let selectedVoiceIndex = voiceSelect.value;
-            let filteredVoices = voices.filter(v => v.lang.includes('bn') || v.lang.includes('IN') || v.lang.includes('BD'));
-            if(filteredVoices.length === 0) filteredVoices = voices.filter(v => v.lang.includes('en'));
-            
-            if(filteredVoices[selectedVoiceIndex]) {
-                utterance.voice = filteredVoices[selectedVoiceIndex];
-            }
-            
-            utterance.rate = speedSlider.value;
-
-            // অডিও আউটপুট ও ডাউনলোড ফাইল প্রসেস করা
-            const mediaStreamAudioDestination = new AudioContext();
-            const audioCtx = mediaStreamAudioDestination;
-            const dest = audioCtx.createMediaStreamDestination();
-            const mediaRecorder = new MediaRecorder(dest.stream);
-            let chunks = [];
-
-            mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(chunks, { type: 'audio/mp3' });
-                if(currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
-                currentBlobUrl = URL.createObjectURL(blob);
-                audioPlayer.src = currentBlobUrl;
-                audioContainer.classList.remove('hidden');
+            try {
+                const lang = voiceSelect.value;
+                const speed = speedSlider.value;
                 
-                btn.disabled = false;
-                btn.innerText = "ভয়েস তৈরি করুন";
-            };
-
-            // লোকাল স্পিচ প্লেব্যাক ইঞ্জিন ট্রিগার
-            synth.speak(utterance);
-            
-            // রিয়েল-টাইম প্লেয়ার সচল করা
-            audioPlayer.src = "";
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.innerText = "ভয়েস তৈরি করুন";
+                // সুপার ফাস্ট এবং হাই-স্ট্যাবিলিটি এপিআই গেটওয়ে
+                const ttsUrl = `https://google.com{lang}&client=tw-ob&ttsspeed=${speed}&q=${encodeURIComponent(text)}`;
+                
+                audioPlayer.src = ttsUrl;
+                
+                // অডিও লোড হওয়া নিশ্চিত করা
+                audioPlayer.load();
+                
                 audioContainer.classList.remove('hidden');
-                // ব্রাউজারের নিজস্ব ইন্টারফেস সাপোর্ট
-                audioPlayer.src = `https://google.com{speedSlider.value}&q=${encodeURIComponent(text)}`;
-            }, 600);
+            } catch (error) {
+                alert("দুঃখিত, আবার চেষ্টা করুন।");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "ভয়েস তৈরি করুন";
+            }
         });
 
         document.getElementById('download-btn').addEventListener('click', () => {
             const text = textInput.value.trim();
             if(text) {
+                const lang = voiceSelect.value;
+                const speed = speedSlider.value;
+                const downloadUrl = `https://google.com{lang}&client=tw-ob&ttsspeed=${speed}&q=${encodeURIComponent(text)}`;
+                
                 const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = 'zonixai-voice.mp3';
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        });
+    </script>
+</body>
+</html>
