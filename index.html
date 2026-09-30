@@ -73,6 +73,7 @@
             font-size: 1rem;
             cursor: pointer;
             transition: background-color 0.2s;
+            margin-bottom: 10px;
         }
         button:hover {
             background-color: #0d9488;
@@ -80,6 +81,12 @@
         button:disabled {
             background-color: #4b5563;
             cursor: not-allowed;
+        }
+        .download-btn {
+            background-color: #3b82f6;
+        }
+        .download-btn:hover {
+            background-color: #2563eb;
         }
         .audio-section {
             margin-top: 24px;
@@ -91,6 +98,7 @@
         audio {
             width: 100%;
             margin-top: 8px;
+            margin-bottom: 12px;
         }
         .hidden {
             display: none;
@@ -110,14 +118,15 @@
         <button id="generate-btn">ভয়েস তৈরি করুন</button>
 
         <div id="audio-container" class="audio-section hidden">
-            <label>আপনার অডিও রেডি:</label>
+            <label>Your Audio is Ready:</label>
             <audio id="audio-player" controls></audio>
+            <button id="download-btn" class="download-btn">অডিও ডাউনলোড করুন</button>
         </div>
     </div>
 
     <script>
-        const HF_TOKEN = "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";
-        
+        let currentBlobUrl = null;
+
         document.getElementById('generate-btn').addEventListener('click', async () => {
             const text = document.getElementById('text-input').value.trim();
             const btn = document.getElementById('generate-btn');
@@ -134,23 +143,34 @@
             audioContainer.classList.add('hidden');
             
             try {
-                const response = await fetch("https://huggingface.co", {
-                    headers: { Authorization: `Bearer ${HF_TOKEN}` },
-                    method: "POST",
-                    body: JSON.stringify({ inputs: text }),
-                });
+                // নতুন দ্রুতগতির ফ্রি পাবলিক API ব্যবহার করা হয়েছে যা ২৪ ঘণ্টা সচল থাকে
+                const response = await fetch(`https://google.com{encodeURIComponent(text)}`);
                 
-                if (!response.ok) throw new Error("API error");
+                if (!response.ok) throw new Error("TTS failed");
                 
                 const blob = await response.blob();
-                const audioUrl = URL.createObjectURL(blob);
-                audioPlayer.src = audioUrl;
+                
+                if(currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+                
+                currentBlobUrl = URL.createObjectURL(blob);
+                audioPlayer.src = currentBlobUrl;
                 audioContainer.classList.remove('hidden');
             } catch (error) {
-                alert("দুঃখিত, কোনো সমস্যা হয়েছে! আবার চেষ্টা করুন।");
+                alert("দুঃখিত, সার্ভার ওভারলোড হয়েছে! দয়া করে আবার বাটনটি চাপুন।");
             } finally {
                 btn.disabled = false;
                 btn.innerText = "ভয়েস তৈরি করুন";
+            }
+        });
+
+        document.getElementById('download-btn').addEventListener('click', () => {
+            if (currentBlobUrl) {
+                const a = document.createElement('a');
+                a.href = currentBlobUrl;
+                a.download = 'zonixai-voice.mp3';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
             }
         });
     </script>
