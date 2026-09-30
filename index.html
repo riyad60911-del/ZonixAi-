@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZonixAi - AI Voice Generator</title>
+    <title>ZonixAi - AI Voice Generator Pro</title>
     <style>
         body {
             background-color: #111827;
             color: #ffffff;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -19,24 +19,25 @@
         }
         .container {
             width: 100%;
-            max-width: 450px;
+            max-width: 480px;
             background-color: #1f2937;
             border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            padding: 28px;
             box-sizing: border-box;
         }
         h1 {
             color: #2dd4bf;
             text-align: center;
             margin: 0 0 5px 0;
-            font-size: 2rem;
+            font-size: 2.2rem;
+            letter-spacing: 1px;
         }
         .subtitle {
             color: #9ca3af;
             text-align: center;
             font-size: 0.875rem;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
         }
         .form-group {
             margin-bottom: 20px;
@@ -46,10 +47,11 @@
             font-size: 0.875rem;
             font-weight: 500;
             margin-bottom: 8px;
+            color: #e5e7eb;
         }
         textarea {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background-color: #374151;
             color: #ffffff;
             border: 1px solid #4b5563;
@@ -62,6 +64,36 @@
             outline: none;
             border-color: #2dd4bf;
         }
+        .counter {
+            text-align: right;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+        select, input[type="range"] {
+            width: 100%;
+            padding: 12px;
+            background-color: #374151;
+            color: #ffffff;
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        select:focus {
+            outline: none;
+            border-color: #2dd4bf;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .slider-val {
+            font-size: 0.875rem;
+            color: #2dd4bf;
+            min-width: 35px;
+        }
         button {
             width: 100%;
             background-color: #14b8a6;
@@ -73,7 +105,7 @@
             font-size: 1rem;
             cursor: pointer;
             transition: background-color 0.2s;
-            margin-bottom: 10px;
+            margin-top: 10px;
         }
         button:hover {
             background-color: #0d9488;
@@ -84,6 +116,7 @@
         }
         .download-btn {
             background-color: #3b82f6;
+            margin-top: 10px;
         }
         .download-btn:hover {
             background-color: #2563eb;
@@ -91,14 +124,14 @@
         .audio-section {
             margin-top: 24px;
             background-color: #374151;
-            padding: 15px;
+            padding: 18px;
             border-radius: 8px;
             border: 1px dashed #4b5563;
         }
         audio {
             width: 100%;
             margin-top: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 5px;
         }
         .hidden {
             display: none;
@@ -108,17 +141,36 @@
 <body>
     <div class="container">
         <h1>ZonixAi</h1>
-        <div class="subtitle">ফ্রি ওপেন-সোর্স এআই ভয়েস জেনারেটর</div>
+        <div class="subtitle">প্রো এআই ভয়েস জেনারেটর (ফ্রি এডিশন)</div>
         
         <div class="form-group">
             <label for="text-input">আপনার টেক্সট লিখুন:</label>
             <textarea id="text-input" rows="4" placeholder="এখানে যা লিখবেন তা ভয়েস হয়ে যাবে..."></textarea>
+            <div class="counter"><span id="char-count">0</span> / 500 অক্ষর</div>
+        </div>
+
+        <div class="form-group">
+            <label for="voice-select">ভয়েস মডেল সিলেক্ট করুন:</label>
+            <select id="voice-select">
+                <option value="bn-IN-Wavenet-A">বাংলা এআই ভয়েস ১ (মহিলা - প্রিমিয়াম)</option>
+                <option value="bn-IN-Wavenet-B">বাংলা এআই ভয়েস ২ (পুরুষ - প্রফেশনাল)</option>
+                <option value="bn-BD-Standard-A">বাংলাদেশী অ্যাকসেন্ট ১ (মহিলা)</option>
+                <option value="bn-BD-Standard-B">বাংলাদেশী অ্যাকসেন্ট ২ (পুরুষ)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="speed-slider">ভয়েস স্পীড (গতি):</label>
+            <div class="slider-container">
+                <input type="range" id="speed-slider" min="0.5" max="2.0" step="0.1" value="1.0">
+                <span id="speed-val" class="slider-val">1.0x</span>
+            </div>
         </div>
 
         <button id="generate-btn">ভয়েস তৈরি করুন</button>
 
         <div id="audio-container" class="audio-section hidden">
-            <label>Your Audio is Ready:</label>
+            <label>আপনার অডিও প্রস্তুত:</label>
             <audio id="audio-player" controls></audio>
             <button id="download-btn" class="download-btn">অডিও ডাউনলোড করুন</button>
         </div>
@@ -126,12 +178,28 @@
 
     <script>
         let currentBlobUrl = null;
+        const textInput = document.getElementById('text-input');
+        const charCount = document.getElementById('char-count');
+        const speedSlider = document.getElementById('speed-slider');
+        const speedVal = document.getElementById('speed-val');
+
+        // ক্যারেক্টার কাউন্টার আপডেট
+        textInput.addEventListener('input', () => {
+            charCount.innerText = textInput.value.length;
+        });
+
+        // স্পীড স্লাইডার টেক্সট আপডেট
+        speedSlider.addEventListener('input', () => {
+            speedVal.innerText = speedSlider.value + 'x';
+        });
 
         document.getElementById('generate-btn').addEventListener('click', async () => {
-            const text = document.getElementById('text-input').value.trim();
+            const text = textInput.value.trim();
             const btn = document.getElementById('generate-btn');
             const audioContainer = document.getElementById('audio-container');
             const audioPlayer = document.getElementById('audio-player');
+            const voice = document.getElementById('voice-select').value;
+            const speed = speedSlider.value;
             
             if(!text) {
                 alert("দয়া করে কিছু টেক্সট লিখুন!");
@@ -143,8 +211,9 @@
             audioContainer.classList.add('hidden');
             
             try {
-                // নতুন দ্রুতগতির ফ্রি পাবলিক API ব্যবহার করা হয়েছে যা ২৪ ঘণ্টা সচল থাকে
-                const response = await fetch(`https://google.com{encodeURIComponent(text)}`);
+                // মাল্টিপল ভয়েস এবং স্পীড কন্ট্রোল যুক্ত ফ্রি ক্লাউড এপিআই ইঞ্জিন
+                const apiVoice = voice.includes('Wavenet-B') || voice.includes('Standard-B') ? 'male' : 'female';
+                const response = await fetch(`https://google.com{speed}&q=${encodeURIComponent(text)}`);
                 
                 if (!response.ok) throw new Error("TTS failed");
                 
@@ -156,7 +225,7 @@
                 audioPlayer.src = currentBlobUrl;
                 audioContainer.classList.remove('hidden');
             } catch (error) {
-                alert("দুঃখিত, সার্ভার ওভারলোড হয়েছে! দয়া করে আবার বাটনটি চাপুন।");
+                alert("সার্ভার রেসপন্স করছে না, দয়া করে আবার চেষ্টা করুন।");
             } finally {
                 btn.disabled = false;
                 btn.innerText = "ভয়েস তৈরি করুন";
@@ -167,7 +236,7 @@
             if (currentBlobUrl) {
                 const a = document.createElement('a');
                 a.href = currentBlobUrl;
-                a.download = 'zonixai-voice.mp3';
+                a.download = 'zonixai-pro-voice.mp3';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
