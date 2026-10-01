@@ -1,162 +1,2818 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZonixAi — AI Voice Studio</title>
-    <style>
-        :root {
-            --primary: #111827;
-            --accent: #2dd4bf;
-            --bg: #f3f4f6;
-            --card-bg: #ffffff;
-            --text: #1f2937;
-        }
-        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; padding-bottom: 80px; }
-        
-        /* Navbar */
-        .navbar { background-color: var(--card-bg); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 8px; }
-        .user-badge { font-size: 0.85rem; background: #e5e7eb; padding: 6px 12px; border-radius: 20px; font-weight: 600; }
-        
-        /* Main Container */
-        .main-container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
-        .page { display: none; }
-        .page.active { display: block; }
-        
-        /* Studio Card */
-        .studio-box { background-color: var(--card-bg); border-radius: 16px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #e5e7eb; }
-        h2 { text-align: center; color: var(--primary); margin-top: 0; font-size: 1.6rem; line-height: 1.4; }
-        .subtitle { text-align: center; color: #6b7280; font-size: 0.9rem; margin-top: -15px; margin-bottom: 25px; }
-        
-        textarea { width: 100%; padding: 15px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 1rem; resize: vertical; box-sizing: border-box; background: #f9fafb; transition: border 0.2s; }
-        textarea:focus { outline: none; border-color: var(--accent); background: #fff; }
-        
-        .meta-info { display: flex; justify-content: space-between; font-size: 0.85rem; color: #6b7280; margin-bottom: 25px; margin-top: 5px; }
-        .control-group { margin-bottom: 20px; }
-        label { display: block; font-weight: 600; margin-bottom: 8px; color: #374151; font-size: 0.9rem; }
-        select, input[type="range"] { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 1rem; box-sizing: border-box; background-color: #fff; }
-        
-        .slider-flex { display: flex; align-items: center; gap: 15px; }
-        .slider-flex input { flex: 1; }
-        .slider-val { font-weight: bold; color: var(--primary); min-width: 40px; text-align: right; }
-        
-        /* Buttons */
-        .btn { width: 100%; background-color: var(--primary); color: #ffffff; font-weight: bold; padding: 15px; border: none; border-radius: 10px; font-size: 1rem; cursor: pointer; transition: background 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .btn:hover { background-color: #1f2937; }
-        .btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
-        .download-btn { background-color: #2563eb; margin-top: 12px; display: none; }
-        .download-btn:hover { background-color: #1d4ed8; }
-        
-        /* Audio Output Section */
-        .audio-section { margin-top: 25px; background-color: #f9fafb; padding: 20px; border-radius: 12px; border: 1px dashed #d1d5db; text-align: center; }
-        .status-msg { margin: 0 0 10px 0; color: #6b7280; font-size: 0.95rem; font-weight: 500; }
-        audio { width: 100%; display: none; margin-top: 10px; }
-        
-        /* Pricing Cards */
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 20px; }
-        .price-card { background: var(--card-bg); border-radius: 16px; padding: 25px; text-align: center; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px rgba(0,0,0,0.02); position: relative; overflow: hidden; }
-        .price-card.popular { border-color: var(--accent); box-shadow: 0 10px 20px rgba(45,212,191,0.1); }
-        .popular-badge { background: var(--accent); color: var(--primary); font-size: 0.75rem; font-weight: bold; padding: 4px 12px; position: absolute; top: 12px; right: 12px; border-radius: 20px; }
-        .price-card h3 { margin: 0; font-size: 1.3rem; color: var(--primary); }
-        .price-card .cost { font-size: 1.8rem; font-weight: bold; margin: 15px 0; color: var(--primary); }
-        .price-card ul { list-style: none; padding: 0; margin: 20px 0; text-align: left; font-size: 0.9rem; color: #4b5563; }
-        .price-card ul li { margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-        
-        /* Popups / Modals */
-        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-        .modal.active { display: flex; }
-        .modal-content { background: var(--card-bg); border-radius: 16px; padding: 25px; width: 100%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); position: relative; }
-        .close-btn { position: absolute; top: 15px; right: 15px; font-size: 1.5rem; cursor: pointer; color: #9ca3af; border: none; background: none; }
-        .modal h3 { margin-top: 0; color: var(--primary); font-size: 1.3rem; margin-bottom: 20px; }
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 5px; color: #4b5563; }
-        .modal input, .modal select { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; }
-        
-        /* Navigation Footer */
-        .footer-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); display: flex; justify-content: space-around; padding: 12px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 500; border-top: 1px solid #e5e7eb; }
-        .footer-nav button { background: none; border: none; color: #4b5563; font-size: 0.95rem; font-weight: 500; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
-        .footer-nav button.active { color: var(--primary); font-weight: bold; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ZonixAi — AI Voice Studio (Apple White Edition)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ============================================================
+       ZONIXAI APPLE CUPERTINO WHITE THEME (HOPWEB & MOBILE READY)
+       ============================================================ */
+    :root {
+      --bg-grouped: #F2F2F7;
+      --bg-secondary: #F9F9FB;
+      --bg-card: #FFFFFF;
+      --bg-glass: rgba(255, 255, 255, 0.88);
+      --border-hairline: #E5E5EA;
+      --border-card: rgba(0, 0, 0, 0.07);
+
+      --apple-blue: #007AFF;
+      --apple-blue-dark: #0051D5;
+      --apple-blue-soft: #E8F2FF;
+
+      --apple-indigo: #5856D6;
+      --apple-indigo-soft: #EEEEFF;
+
+      --apple-purple: #AF52DE;
+      --apple-purple-soft: #F6EAFC;
+
+      --apple-green: #34C759;
+      --apple-green-dark: #248A3D;
+      --apple-green-soft: #E9F9EE;
+
+      --apple-orange: #FF9500;
+      --apple-orange-dark: #C93400;
+      --apple-orange-soft: #FFF4E5;
+
+      --apple-red: #FF3B30;
+      --apple-red-soft: #FFEBEA;
+
+      --text-main: #1C1C1E;
+      --text-secondary: #6E6E73;
+      --text-muted: #8E8E93;
+
+      --radius-sm: 10px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.05);
+      --shadow-elevated: 0 10px 30px rgba(0, 122, 255, 0.12);
+      --shadow-modal: 0 20px 50px rgba(0, 0, 0, 0.18);
+
+      --font-main: 'Hind Siliguri', 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-grouped);
+      color: var(--text-main);
+      font-family: var(--font-main);
+      line-height: 1.5;
+      min-height: 100vh;
+      padding-bottom: 84px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .hidden { display: none !important; }
+
+    /* Apple Floating Toast Banner */
+    .apple-toast {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: rgba(28, 28, 30, 0.94);
+      color: #FFFFFF;
+      padding: 11px 20px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+      z-index: 400;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      max-width: 90%;
+      white-space: normal;
+      text-align: center;
+    }
+    .apple-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .apple-toast.error-toast .toast-dot {
+      background: var(--apple-red);
+    }
+    .toast-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--apple-green);
+      flex-shrink: 0;
+    }
+
+    /* Translucent Frosted Apple Header */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      background: var(--bg-glass);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 0.8px solid var(--border-hairline);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--apple-blue), var(--apple-indigo));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      color: white;
+      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.28);
+    }
+
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.3px;
+      line-height: 1.15;
+    }
+
+    .brand-subtitle {
+      font-family: 'Outfit', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: block;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-secondary);
+      padding: 4px 12px 4px 5px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-hairline);
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.2s ease;
+    }
+    .user-badge:active {
+      transform: scale(0.97);
+      background: #EFEFF4;
+    }
+
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--apple-blue), var(--apple-blue-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .user-badge-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+
+    .header-user-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-main);
+      max-width: 95px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .header-user-credits {
+      font-family: 'Outfit', sans-serif;
+      font-size: 10px;
+      color: var(--apple-green-dark);
+      font-weight: 700;
+    }
+
+    /* Frosted Apple Tab Bar (Bottom Navigation) */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 66px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-top: 0.8px solid var(--border-hairline);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 90;
+      padding: 0 8px;
+    }
+
+    .nav-tab {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 11px;
+      font-family: var(--font-main);
+      font-weight: 500;
+      cursor: pointer;
+      padding: 6px 16px;
+      border-radius: 14px;
+      transition: all 0.2s ease;
+      min-width: 58px;
+      min-height: 48px;
+    }
+
+    .nav-tab .tab-icon-pill {
+      padding: 3px 14px;
+      border-radius: var(--radius-full);
+      font-size: 18px;
+      line-height: 1;
+      transition: all 0.2s ease;
+    }
+
+    .nav-tab.active {
+      color: var(--apple-blue);
+      font-weight: 700;
+    }
+
+    .nav-tab.active .tab-icon-pill {
+      background: var(--apple-blue-soft);
+    }
+
+    /* Main Container */
+    .main-content {
+      padding: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .screen-view {
+      display: none;
+    }
+    .screen-view.active {
+      display: block;
+      animation: appleFadeIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes appleFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Apple Inset Grouped Cards & Buttons */
+    .card {
+      background: var(--bg-card);
+      border: 0.8px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-main);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.18s ease;
+      text-decoration: none;
+      min-height: 44px;
+    }
+    .btn:active {
+      transform: scale(0.98);
+    }
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn-primary {
+      background: var(--apple-blue);
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--apple-blue-dark);
+    }
+
+    .btn-secondary {
+      background: var(--bg-grouped);
+      color: var(--text-main);
+      border: 0.8px solid var(--border-hairline);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: #E5E5EA;
+    }
+
+    .btn-soft-blue {
+      background: var(--apple-blue-soft);
+      color: var(--apple-blue-dark);
+      font-weight: 700;
+    }
+
+    .btn-outline {
+      background: rgba(0, 122, 255, 0.08);
+      color: var(--apple-blue);
+      border: 1px solid rgba(0, 122, 255, 0.3);
+      border-radius: var(--radius-full);
+    }
+
+    .btn-danger-outline {
+      background: var(--apple-red-soft);
+      color: var(--apple-red);
+      border: 1px solid rgba(255, 59, 48, 0.3);
+      border-radius: var(--radius-full);
+    }
+
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 12px;
+      min-height: 34px;
+    }
+
+    .w-full { width: 100%; }
+    .flex-1 { flex: 1; }
+
+    /* Apple Hero Card */
+    .hero-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(0, 122, 255, 0.16);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-elevated);
+    }
+
+    .hero-art-banner {
+      height: 135px;
+      background: radial-gradient(circle at 80% 20%, #D8EAFE 0%, #F0F6FF 55%, #FFFFFF 100%);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 22px;
+      border-bottom: 0.8px solid rgba(0, 122, 255, 0.1);
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.92);
+      border: 0.8px solid rgba(0, 122, 255, 0.25);
+      color: var(--apple-blue-dark);
+      font-size: 11px;
+      font-weight: 700;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hero-mic-illustration {
+      width: 68px;
+      height: 68px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--apple-blue), var(--apple-indigo));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: white;
+      box-shadow: 0 8px 20px rgba(0, 122, 255, 0.3);
+    }
+
+    .hero-body {
+      padding: 20px 22px 22px;
+    }
+
+    .hero-heading {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.32;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+
+    .hero-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 18px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Bento Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 0.8px solid var(--border-card);
+      border-radius: 16px;
+      padding: 14px 8px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-num {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--apple-blue);
+    }
+    .stat-card:nth-child(2) .stat-num { color: var(--apple-indigo); }
+    .stat-card:nth-child(3) .stat-num { color: var(--apple-green-dark); }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* Horizontal Voice Slider */
+    .section-block { margin-bottom: 24px; }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .section-header h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      background: var(--apple-green-soft);
+      color: var(--apple-green-dark);
+      font-weight: 700;
+    }
+
+    .badge-indigo {
+      background: var(--apple-blue-soft);
+      color: var(--apple-blue-dark);
+    }
+
+    .voice-slider {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 2px 2px 10px;
+      scrollbar-width: none;
+    }
+    .voice-slider::-webkit-scrollbar { display: none; }
+
+    .voice-card-mini {
+      min-width: 152px;
+      background: var(--bg-card);
+      border: 0.8px solid var(--border-card);
+      border-radius: 18px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      transition: transform 0.15s ease, border-color 0.2s ease;
+    }
+    .voice-card-mini:hover {
+      border-color: var(--apple-blue);
+      transform: translateY(-2px);
+    }
+
+    .voice-avatar-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--apple-blue), var(--apple-indigo));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: white;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2);
+    }
+
+    .voice-mini-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 2px;
+    }
+
+    .voice-mini-cat {
+      font-size: 10px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    /* Feature List */
+    .feature-list { display: flex; flex-direction: column; gap: 10px; }
+    .feature-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--bg-card);
+      border: 0.8px solid var(--border-card);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .bg-indigo { background: var(--apple-blue); }
+    .bg-purple { background: var(--apple-indigo); }
+    .bg-emerald { background: var(--apple-green); }
+
+    /* Studio UI */
+    .card-header-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tag-row { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+    .tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+    }
+    .tag-indigo { background: var(--apple-blue-soft); color: var(--apple-blue-dark); }
+    .tag-purple { background: var(--apple-purple-soft); color: var(--apple-purple); }
+    .tag-emerald { background: var(--apple-green-soft); color: var(--apple-green-dark); }
+
+    /* Script Template Pills */
+    .template-chips-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .template-chips-row::-webkit-scrollbar { display: none; }
+
+    .template-chip {
+      background: var(--bg-card);
+      border: 0.8px solid var(--border-hairline);
+      border-radius: var(--radius-full);
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      cursor: pointer;
+      font-family: var(--font-main);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s ease;
+    }
+    .template-chip:active {
+      background: var(--apple-blue-soft);
+      color: var(--apple-blue-dark);
+      transform: scale(0.96);
+    }
+
+    .text-input-card textarea {
+      width: 100%;
+      background: var(--bg-secondary);
+      border: 1px solid transparent;
+      border-radius: 14px;
+      padding: 12px;
+      color: var(--text-main);
+      font-family: var(--font-main);
+      font-size: 15px;
+      outline: none;
+      resize: vertical;
+      min-height: 125px;
+      transition: border-color 0.2s ease;
+    }
+    .text-input-card textarea:focus {
+      border-color: rgba(0, 122, 255, 0.45);
+      background: #FFFFFF;
+    }
+
+    .text-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-secondary);
+      border-top: 0.8px solid var(--border-hairline);
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .value-pill {
+      background: var(--apple-blue-soft);
+      color: var(--apple-blue-dark);
+      padding: 2px 10px;
+      border-radius: var(--radius-full);
+      font-family: 'Outfit', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--apple-blue);
+      height: 6px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .studio-actions { display: flex; gap: 10px; margin-bottom: 16px; }
+
+    /* Professional Player Card */
+    .player-card {
+      border: 1px solid rgba(52, 199, 89, 0.4);
+      background: linear-gradient(180deg, #F5FCF7 0%, #FFFFFF 100%);
+      padding: 18px;
+      border-radius: var(--radius-lg);
+    }
+    .player-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .player-status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--apple-green-dark);
+    }
+
+    .audio-player-widget {
+      margin-top: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-hairline);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .audio-controls-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .btn-play-pause {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--apple-blue);
+      color: white;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);
+      flex-shrink: 0;
+      transition: transform 0.15s ease;
+    }
+    .btn-play-pause:active {
+      transform: scale(0.94);
+    }
+
+    .audio-progress-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .audio-timeline-track {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .audio-time-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'Outfit', sans-serif;
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .player-actions-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .btn-download-mp3 {
+      background: linear-gradient(135deg, var(--apple-green-dark), #1E7E34);
+      color: white;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(36, 138, 61, 0.25);
+    }
+    .btn-download-mp3:hover {
+      background: #1B6D2F;
+    }
+
+    .text-emerald { color: var(--apple-green-dark); font-weight: 700; }
+    .text-amber { color: var(--apple-orange-dark); font-weight: 700; }
+    .text-muted { color: var(--text-secondary); }
+    .text-xs { font-size: 12px; }
+
+    /* History Section */
+    .history-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .history-list { margin-top: 10px; }
+    .history-card {
+      background: var(--bg-card);
+      border: 0.8px solid var(--border-card);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.15s ease;
+    }
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+    .history-text-preview {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      line-height: 1.4;
+      flex: 1;
+      padding-right: 8px;
+    }
+    .history-btn-del {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px;
+      border-radius: 8px;
+    }
+    .history-btn-del:hover {
+      color: var(--apple-red);
+      background: var(--apple-red-soft);
+    }
+    .history-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+      border-top: 0.8px solid var(--border-hairline);
+      padding-top: 8px;
+    }
+    .history-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .empty-placeholder {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 13px;
+      padding: 28px 16px;
+      background: var(--bg-card);
+      border-radius: 16px;
+      border: 0.8px solid var(--border-card);
+    }
+
+    /* Packages */
+    .packages-grid { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+    .package-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 22px;
+      padding: 20px;
+      position: relative;
+      box-shadow: var(--shadow-card);
+    }
+
+    .package-card.featured {
+      border: 1.5px solid var(--apple-blue);
+      box-shadow: var(--shadow-elevated);
+    }
+
+    .package-badge {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-size: 11px;
+      background: var(--apple-blue);
+      color: white;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      font-weight: 700;
+    }
+
+    .pkg-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    .pkg-price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      margin: 10px 0 14px;
+      padding-bottom: 12px;
+      border-bottom: 0.8px solid var(--border-hairline);
+    }
+    .pkg-price {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    .package-card.featured .pkg-price { color: var(--apple-blue-dark); }
+    .pkg-duration { font-size: 12px; color: var(--text-secondary); }
+
+    .pkg-features {
+      list-style: none;
+      font-size: 13px;
+      color: var(--text-main);
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pkg-features li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .check-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--apple-green-soft);
+      color: var(--apple-green-dark);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    /* Admin Panel & Apple Segmented Control */
+    .admin-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .admin-stat-card {
+      background: var(--bg-card);
+      border: 0.8px solid var(--border-card);
+      border-radius: 16px;
+      padding: 12px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-title { display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 2px; }
+    .stat-value { font-size: 20px; font-weight: 800; color: var(--text-main); }
+
+    .apple-segmented {
+      display: flex;
+      background: #E5E5EA;
+      padding: 3px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      gap: 4px;
+    }
+    .seg-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 9px;
+      font-family: var(--font-main);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-height: 40px;
+    }
+    .seg-btn.active {
+      background: #FFFFFF;
+      color: var(--text-main);
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 11px 13px;
+      border-radius: 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-hairline);
+      color: var(--text-main);
+      font-family: var(--font-main);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s ease, background 0.2s ease;
+      min-height: 44px;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--apple-blue);
+      background: #FFFFFF;
+    }
+    .form-row { display: flex; gap: 10px; }
+
+    /* Filter Chips in Voice Modal */
+    .filter-chips-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .filter-chips-row::-webkit-scrollbar { display: none; }
+    .filter-chip {
+      background: var(--bg-secondary);
+      border: 0.8px solid var(--border-hairline);
+      border-radius: var(--radius-full);
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .filter-chip.active {
+      background: var(--apple-blue);
+      color: white;
+      border-color: var(--apple-blue);
+    }
+
+    /* Apple Modals */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 200;
+    }
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-xl);
+      width: 100%;
+      max-width: 440px;
+      max-height: 86vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-modal);
+      animation: appleFadeIn 0.2s ease;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 0.8px solid var(--border-hairline);
+    }
+    .modal-header h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .modal-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--bg-grouped);
+      border: none;
+      font-size: 20px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: background 0.15s ease;
+    }
+    .modal-close:hover {
+      background: #E5E5EA;
+      color: var(--text-main);
+    }
+    .modal-body { padding: 20px; }
+
+    .selected-plan-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--apple-blue-soft);
+      border: 1px solid rgba(0, 122, 255, 0.3);
+      padding: 12px 14px;
+      border-radius: 14px;
+      margin-bottom: 14px;
+    }
+
+    .merchant-numbers {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 8px 0 16px;
+    }
+    .m-number {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-secondary);
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 0.8px solid var(--border-hairline);
+      font-size: 13px;
+      color: var(--text-main);
+    }
+    .btn-copy {
+      background: var(--apple-blue-soft);
+      border: 0.8px solid rgba(0, 122, 255, 0.3);
+      color: var(--apple-blue-dark);
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 11px;
+      font-family: var(--font-main);
+    }
+
+    .voice-picker-grid { display: flex; flex-direction: column; gap: 10px; }
+    .voice-pick-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-hairline);
+      border-radius: 16px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .voice-pick-item.active {
+      border: 1.5px solid var(--apple-blue);
+      background: var(--apple-blue-soft);
+    }
+
+    /* Admin Transaction Card */
+    .tx-card {
+      padding: 14px;
+      margin-bottom: 10px;
+      background: var(--bg-secondary);
+      border-radius: 14px;
+      border: 0.8px solid var(--border-card);
+      border-left: 4px solid var(--apple-orange);
+    }
+    .tx-card.tx-approved { border-left-color: var(--apple-green); }
+    .tx-card.tx-rejected { border-left-color: var(--apple-red); }
+
+    .tx-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .tx-info {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .tx-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    /* Spinner Animation */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      border-top-color: #FFFFFF;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
 
-    <!-- Top Bar -->
-    <div class="navbar">
-        <div class="logo">🎙 ZonixAi</div>
-        <div class="user-badge" id="nav-user-badge">ক্রেডিট: ২৫,০০০ Cr</div>
+  <!-- Hidden Native Audio Element for Reliable Playback -->
+  <audio id="native-audio" class="hidden" preload="auto"></audio>
+
+  <!-- Apple Floating Notification Pill -->
+  <div id="apple-toast" class="apple-toast" role="alert" aria-live="assertive">
+    <span class="toast-dot"></span>
+    <span id="apple-toast-text">সফল হয়েছে</span>
+  </div>
+
+  <!-- Top Frosted Apple Header -->
+  <header class="app-header">
+    <div class="brand" onclick="switchTab('home')">
+      <div class="brand-logo" aria-hidden="true">🎙️</div>
+      <div>
+        <h1 class="brand-title">ZonixAi</h1>
+        <span class="brand-subtitle">AI VOICE STUDIO</span>
+      </div>
     </div>
+    <div class="header-actions">
+      <div id="user-badge" class="user-badge hidden" onclick="handleUserBadgeClick()" title="প্রোফাইল ও লগআউট">
+        <div class="user-avatar" id="user-avatar-text">U</div>
+        <div class="user-badge-info">
+          <span id="header-user-name" class="header-user-name">User</span>
+          <span id="header-user-credits" class="header-user-credits">0 Cr</span>
+        </div>
+      </div>
+      <button id="login-btn" class="btn btn-sm btn-outline" onclick="openAuthModal()">লগইন</button>
+    </div>
+  </header>
 
-    <div class="main-container">
-        
-        <!-- PAGE 1: STUDIO -->
-        <div id="page-studio" class="page active">
-            <div class="studio-box">
-                <h2>বাংলা টেক্সটকে রূপান্তর করুন জীবন্ত মানুষের কণ্ঠে</h2>
-                <div class="subtitle">রেডিও, ইউটিউব ও পডকাস্টের জন্য প্রিমিয়াম ভয়েসওভার</div>
-                
-                <textarea id="text-input" rows="5" placeholder="স্বাগত জোনিক্স এআই ভয়েস স্টুডিওতে! এখানে যা লিখবেন তা মুহূর্তের মধ্যে মানুষের কণ্ঠস্বর হয়ে যাবে..."></textarea>
-                <div class="meta-info">
-                    <span id="char-count">০ অক্ষর</span>
-                    <span style="color: #ef4444;">খরচ: ১ অক্ষর = ১ ক্রেডিট</span>
-                </div>
+  <!-- Screens Container -->
+  <main class="main-content">
+    
+    <!-- 1. HOME SCREEN -->
+    <section id="screen-home" class="screen-view active">
+      <div class="hero-card">
+        <div class="hero-art-banner">
+          <div class="hero-badge">✨ উন্নত এআই প্রযুক্তি</div>
+          <div class="hero-mic-illustration" aria-hidden="true">🎙️</div>
+        </div>
+        <div class="hero-body">
+          <h2 class="hero-heading">বাংলা টেক্সটকে রূপান্তর করুন জীবন্ত মানুষের কণ্ঠে</h2>
+          <p class="hero-desc">
+            ZonixAi স্টুডিও দিয়ে তৈরি করুন রেডিও, ইউটিউব, ড্রামা ও পডকাস্টের জন্য প্রিমিয়াম ভয়েসওভার।
+          </p>
+          <div class="hero-buttons">
+            <button class="btn btn-primary flex-1" onclick="switchTab('studio')">⚡ স্টুডিও চালু করুন</button>
+            <button class="btn btn-secondary flex-1" onclick="switchTab('pricing')">💎 প্যাকেজ দেখুন</button>
+          </div>
+        </div>
+      </div>
 
-                <div class="control-group">
-                    <label for="voice-select">ভয়েস ক্যারেক্টার সিলেক্ট করুন:</label>
-                    <select id="voice-select">
-                        <option value="bn-BD">আরিফ (বাংলাদেশী অ্যাকসেন্ট - প্রফেশনাল পুরুষ)</option>
-                        <option value="bn-IN">অনন্যা (প্রিমিয়াম অ্যাকসেন্ট - মিষ্টি স্বভাবের মহিলা)</option>
-                    </select>
-                </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-num">১০,০০০+</span>
+          <span class="stat-label">সন্তুষ্ট ইউজার</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="home-stat-voices">৫+</span>
+          <span class="stat-label">এআই ভয়েস</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">৯৯.৯%</span>
+          <span class="stat-label">আপটাইম</span>
+        </div>
+      </div>
 
-                <div class="control-group">
-                    <label for="speed-slider">গতি (Speed):</label>
-                    <div class="slider-flex">
-                        <input type="range" id="speed-slider" min="0.5" max="2.0" step="0.1" value="1.0">
-                        <span id="speed-val" class="slider-val">1.0x</span>
-                    </div>
-                </div>
+      <div class="section-block">
+        <div class="section-header">
+          <h3>জনপ্রিয় কণ্ঠসমূহ</h3>
+          <span class="badge">● অনলাইন লাইভ</span>
+        </div>
+        <div id="home-voices-list" class="voice-slider"></div>
+      </div>
 
-                <button id="generate-btn" class="btn">⚡ ভয়েс তৈরি করুন</button>
-
-                <div class="audio-section">
-                    <p id="status-text" class="status-msg">আপনার অডিও এখনো তৈরি করা হয়নি</p>
-                    <audio id="audio-player" controls></audio>
-                    <button id="download-btn" class="btn download-btn">📥 অডিও ডাউনলোড করুন (MP3)</button>
-                </div>
+      <div class="section-block">
+        <div class="section-header">
+          <h3>কেন ZonixAi সেরা?</h3>
+        </div>
+        <div class="feature-list">
+          <div class="feature-card">
+            <div class="feature-icon bg-indigo">🗣️</div>
+            <div>
+              <h4 style="font-size:15px">খাঁটি বাংলা বাচনভঙ্গি</h4>
+              <p class="text-xs text-muted">প্রাকৃতিক টোন, সঠিক যতিচিহ্ন ও আবেগময় বাচনভঙ্গি।</p>
             </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon bg-purple">🎛️</div>
+            <div>
+              <h4 style="font-size:15px">সম্পূর্ণ নিয়ন্ত্রণ</h4>
+              <p class="text-xs text-muted">স্পিড, পিচ ও কাস্টমাইজেশনের অবাধ সুবিধা।</p>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon bg-emerald">⚡</div>
+            <div>
+              <h4 style="font-size:15px">প্রফেশনাল অডিও প্লেয়ার ও MP3 ডাউনলোড</h4>
+              <p class="text-xs text-muted">রিয়েলটাইম প্লেব্যাক, প্রগ্রেস বার এবং হাই-কোয়ালিটি MP3 ডাউনলোড।</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. STUDIO SCREEN -->
+    <section id="screen-studio" class="screen-view">
+      <div class="studio-container">
+        <div class="card">
+          <div class="card-header-flex">
+            <div>
+              <span class="text-muted text-xs">নির্বাচিত ভয়েস</span>
+              <h3 id="current-voice-name" style="font-weight:700;font-size:17px">আরিফ (খবর ও ধারাভাষ্য)</h3>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="openVoiceSelectorModal()">পরিবর্তন</button>
+          </div>
+          <div id="voice-tags" class="tag-row">
+            <span class="tag tag-indigo">বাংলা</span>
+            <span class="tag tag-purple">পুরুষ</span>
+            <span class="tag tag-emerald">সক্রিয়</span>
+          </div>
         </div>
 
-        <!-- PAGE 2: PACKAGES -->
-        <div id="page-packages" class="page">
-            <h2 style="text-align: center; margin-bottom: 5px;">সাবস্ক্রিপশন প্যাকেজ</h2>
-            <p style="text-align: center; color: #6b7280; margin-bottom: 30px;">আপনার প্রয়োজন অনুযায়ী সেরা এআই ভয়েস প্যাকটি বেছে নিন</p>
+        <!-- Quick Script Presets with Category Mapping -->
+        <div class="template-chips-row" role="region" aria-label="স্ক্রিপ্ট টেমপ্লেট">
+          <button class="template-chip" onclick="handleQuickScript('স্বাগতম ZonixAi ভয়েস স্টুডিওতে! এটি বাংলাদেশের সেরা এআই টেক্সট-টু-স্পিচ প্ল্যাটফর্ম।', 'Bengali')">✨ স্বাগতম</button>
+          <button class="template-chip" onclick="handleQuickScript('সন্ধ্যা সাতটার প্রধান সংবাদে স্বাগতম। আজ তথ্যপ্রযুক্তি খাতে কৃত্রিম বুদ্ধিমত্তা ব্যবহারে নতুন রেকর্ড সৃষ্টি হয়েছে।', 'News')">📰 ব্রেকিং নিউজ</button>
+          <button class="template-chip" onclick="handleQuickScript('শহরের কোলাহল পেরিয়ে ছোট্ট নদীটির ধারে যখন সন্ধ্যা নামে, তখন দূর থেকে ভেসে আসে এক মায়াবী সুর।', 'Story')">📖 ছোটগল্প</button>
+          <button class="template-chip" onclick="handleQuickScript('আসসালামু আলাইকুম। ধৈর্য ও সততা মানুষের চরিত্রকে সুন্দর করে এবং জীবনে প্রকৃত প্রশান্তি বয়ে আনে।', 'Islamic')">🕌 ইসলামিক বাণী</button>
+          <button class="template-chip" onclick="handleQuickScript('Welcome to ZonixAi Studio. Transform your script into natural human speech with Apple-grade clarity.', 'English')">🌐 English Intro</button>
+        </div>
+
+        <div class="card text-input-card">
+          <textarea id="studio-text" placeholder="এখানে আপনার বাংলা লেখা লিখুন..." aria-label="স্ক্রিপ্ট ইনপুট">স্বাগতম ZonixAi ভয়েস স্টুডিওতে! এটি বাংলাদেশের সেরা এআই টেক্সট-টু-স্পিচ প্ল্যাটফর্ম।</textarea>
+          <div class="text-meta">
+            <span id="char-count">৭৯ অক্ষর</span>
+            <span id="credit-cost" class="text-emerald">খরচ: ৭৯ ক্রেডিট</span>
+          </div>
+        </div>
+
+        <div class="card controls-card">
+          <div class="control-row">
+            <div class="control-label">
+              <span>গতি (Speed)</span>
+              <span id="speed-val" class="value-pill">1.0x</span>
+            </div>
+            <input type="range" id="speed-slider" min="0.5" max="2.0" step="0.1" value="1.0" aria-label="অডিওর গতি">
+          </div>
+          <div class="control-row">
+            <div class="control-label">
+              <span>সুর / পিচ (Pitch)</span>
+              <span id="pitch-val" class="value-pill">1.0x</span>
+            </div>
+            <input type="range" id="pitch-slider" min="0.5" max="2.0" step="0.1" value="1.0" aria-label="অডিওর পিচ">
+          </div>
+        </div>
+
+        <div class="studio-actions">
+          <button id="btn-preview" class="btn btn-secondary flex-1" onclick="previewVoice()">🔊 প্রিভিউ শুনুন</button>
+          <button id="btn-generate" class="btn btn-primary flex-1" onclick="generateSpeech()">⚡ ভয়েস তৈরি করুন</button>
+        </div>
+
+        <!-- Professional Audio Player Card -->
+        <div id="player-card" class="card player-card hidden">
+          <div class="player-header">
+            <div class="player-status-badge">
+              <span>✓</span>
+              <span>অডিও তৈরি সম্পন্ন!</span>
+            </div>
+            <span id="generated-time" class="text-muted text-xs">এখনই</span>
+          </div>
+          <p id="player-status-msg" class="text-xs text-muted" style="margin-bottom:8px">AI Voice Engine থেকে অডিও তৈরি হয়েছে</p>
+          
+          <div class="audio-player-widget">
+            <div class="audio-controls-row">
+              <button id="btn-audio-toggle" class="btn-play-pause" onclick="toggleAudioPlayback()" aria-label="প্লে বা পজ করুন">▶</button>
+              <div class="audio-progress-container">
+                <input type="range" id="audio-progress" class="audio-timeline-track" min="0" max="100" value="0" step="0.1" oninput="seekAudio(this.value)" aria-label="অডিও ট্র‍্যাক">
+                <div class="audio-time-row">
+                  <span id="audio-current-time">00:00</span>
+                  <span id="audio-duration">00:00</span>
+                </div>
+              </div>
+            </div>
             
-            <div class="pricing-grid">
-                <div class="price-card">
-                    <h3>Starter Pack</h3>
-                    <div class="cost">৳২৫০</div>
-                    <ul>
-                        <li>✓ ৫০,০০০ ফ্রি ক্রেডিট</li>
-                        <li>✓ স্ট্যান্ডার্ড ভয়েস অ্যাক্সেস</li>
-                        <li>✓ ২৪/৭ কাস্টমার সাপোর্ট</li>
-                    </ul>
-                    <button class="btn" onclick="openPaymentModal('Starter Pack', 250)">এখনই কিনুন</button>
-                </div>
-                <div class="price-card popular">
-                    <div class="popular-badge">সেরা পছন্দ</div>
-                    <h3>Creator Pro</h3>
-                    <div class="cost">৳৬৫০</div>
-                    <ul>
-                        <li>✓ ২,০০,০০০ ফ্রি ক্রেডিট</li>
-                        <li>✓ সকল প্রিমিয়াম ভয়েস আনলক</li>
-                        <li>✓ হাই-স্পিড অডিও জেনারেশন</li>
-                    </ul>
-                    <button class="btn" onclick="openPaymentModal('Creator Pro', 650)">এখনই কিনুন</button>
-                </div>
+            <div class="player-actions-row">
+              <button class="btn btn-secondary flex-1 btn-sm" onclick="replayAudio()">↺ পুনরায় প্লে</button>
+              <button id="btn-download-active" class="btn btn-download-mp3 flex-1 btn-sm" onclick="downloadCurrentAudio()">📥 Download MP3</button>
             </div>
+          </div>
         </div>
 
-    </div>
+        <!-- Persistent Generation History Section -->
+        <div class="history-section">
+          <div class="history-section-header">
+            <h4 style="font-size:16px;font-weight:700">পূর্ববর্তী ইতিহাস</h4>
+            <button id="btn-clear-history" class="btn btn-sm btn-danger-outline hidden" onclick="confirmClearHistory()">সব মুছুন</button>
+          </div>
+          <div id="history-list" class="history-list">
+            <div class="empty-placeholder">এখনো কোনো অডিও তৈরি করা হয়নি</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <!-- Modals (Sign In / Payment) -->
+    <!-- 3. PRICING SCREEN -->
+    <section id="screen-pricing" class="screen-view">
+      <div style="text-align:center;margin-bottom:20px">
+        <h2 style="font-size:23px;font-weight:800">সাবস্ক্রিপশন প্যাকেজ</h2>
+        <p class="text-xs text-muted">আপনার প্রয়োজন অনুযায়ী সেরা প্যাকেজ বেছে নিন</p>
+      </div>
+
+      <div id="packages-container" class="packages-grid"></div>
+
+      <div class="card" style="display:flex;align-items:center;gap:12px;background:var(--apple-blue-soft);border:1px solid rgba(0,122,255,0.22)">
+        <div style="width:42px;height:42px;border-radius:12px;background:var(--apple-blue);color:white;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0" aria-hidden="true">🛡️</div>
+        <div>
+          <h4 style="font-size:14px">নিরাপদ পেমেন্ট ভেরিফিকেশন</h4>
+          <p class="text-xs text-muted">bKash, Nagad এবং Rocket এর মাধ্যমে সরাসরি ট্রানজেকশন আইডি যাচাই।</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. ADMIN SCREEN (Role Protected) -->
+    <section id="screen-admin" class="screen-view">
+      <div id="admin-panel-view" class="admin-panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div>
+            <h2 style="font-size:20px;font-weight:800">এডমিন কন্ট্রোল প্যানেল</h2>
+            <span class="badge badge-indigo">কন্ট্রোল ড্যাশবোর্ড</span>
+          </div>
+          <button class="btn btn-sm btn-outline" onclick="loadAdminStats(); showToast('ড্যাশবোর্ড আপডেট করা হয়েছে')">রিফ্রেশ</button>
+        </div>
+
+        <div class="admin-stats-grid">
+          <div class="admin-stat-card">
+            <span class="stat-title">মোট ভয়েস</span>
+            <span id="admin-voice-count" class="stat-value">০</span>
+          </div>
+          <div class="admin-stat-card">
+            <span class="stat-title">পেন্ডিং পেমেন্ট</span>
+            <span id="admin-pending-count" class="stat-value text-amber">০</span>
+          </div>
+          <div class="admin-stat-card">
+            <span class="stat-title">মোট রাজস্ব</span>
+            <span id="admin-total-rev" class="stat-value text-emerald">৳০</span>
+          </div>
+        </div>
+
+        <!-- Apple Segmented Control -->
+        <div class="apple-segmented" role="tablist">
+          <button class="seg-btn active" id="btn-tab-voices" onclick="switchAdminTab('voices')">ভয়েস ম্যানেজমেন্ট</button>
+          <button class="seg-btn" id="btn-tab-payments" onclick="switchAdminTab('payments')">পেমেন্ট রিকোয়েস্ট</button>
+        </div>
+
+        <div id="admin-voices-section" class="card">
+          <h4 style="margin-bottom:12px;font-size:16px">নতুন এআই ভয়েস যুক্ত করুন</h4>
+          <form onsubmit="handleAddNewVoice(event)">
+            <div class="form-group">
+              <label for="voice-id-input">ভয়েস ইউনিক আইডি</label>
+              <input type="text" id="voice-id-input" placeholder="e.g. sumona_doc" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="voice-name-input">ভয়েসের নাম (English)</label>
+              <input type="text" id="voice-name-input" placeholder="e.g. Sumona (Documentary)" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="voice-bn-input">বাংলা নাম</label>
+              <input type="text" id="voice-bn-input" placeholder="e.g. সুমনা (ডকুমেন্টারি)" required autocomplete="off">
+            </div>
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="voice-category-select">ক্যাটাগরি</label>
+                <select id="voice-category-select">
+                  <option value="Bengali">Bengali</option>
+                  <option value="Islamic">Islamic</option>
+                  <option value="Story">Story</option>
+                  <option value="News">News</option>
+                  <option value="English">English</option>
+                </select>
+              </div>
+              <div class="form-group flex-1">
+                <label for="voice-gender-select">জেন্ডার</label>
+                <select id="voice-gender-select">
+                  <option value="Female">Female</option>
+                  <option value="Male">Male</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-full">+ নতুন ভয়েস যুক্ত করুন</button>
+          </form>
+        </div>
+
+        <div id="admin-payments-section" class="card hidden">
+          <h4 style="margin-bottom:12px;font-size:16px">পেমেন্ট ট্রানজেকশন তালিকা</h4>
+          <div id="admin-transactions-list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Apple Bottom Navigation Bar -->
+  <nav class="bottom-nav" aria-label="মূল নেভিগেশন">
+    <button class="nav-tab active" data-tab="home" onclick="switchTab('home')" aria-label="হোম">
+      <span class="tab-icon-pill" aria-hidden="true">🏠</span>
+      <span>হোম</span>
+    </button>
+    <button class="nav-tab" data-tab="studio" onclick="switchTab('studio')" aria-label="স্টুডিও">
+      <span class="tab-icon-pill" aria-hidden="true">🎙️</span>
+      <span>স্টুডিও</span>
+    </button>
+    <button class="nav-tab" data-tab="pricing" onclick="switchTab('pricing')" aria-label="প্যাকেজ">
+      <span class="tab-icon-pill" aria-hidden="true">👑</span>
+      <span>প্যাকেজ</span>
+    </button>
+    <button id="nav-tab-admin" class="nav-tab hidden" data-tab="admin" onclick="switchTab('admin')" aria-label="এডমিন">
+      <span class="tab-icon-pill" aria-hidden="true">🛡️</span>
+      <span>এডমিন</span>
+    </button>
+  </nav>
+
+  <!-- ================= MODALS ================= -->
+  
+  <!-- AUTH MODAL -->
+  <div id="auth-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="auth-modal-title">সাইন ইন করুন</h3>
+        <button class="modal-close" onclick="closeAuthModal()" aria-label="বন্ধ করুন">&times;</button>
+      </div>
+      <div class="modal-body">
+        <button class="btn btn-soft-blue w-full" style="margin-bottom:14px" onclick="quickGuestLogin()">
+          ⚡ ডেমো ইউজার হিসেবে লগইন
+        </button>
+
+        <form onsubmit="handleEmailAuth(event)">
+          <div class="form-group">
+            <label for="auth-email">ইমেইল এড্রেস</label>
+            <input type="email" id="auth-email" placeholder="example@domain.com" required autocomplete="email" value="">
+          </div>
+          <div class="form-group">
+            <label for="auth-password">পাসওয়ার্ড</label>
+            <input type="password" id="auth-password" placeholder="কমপক্ষে ৬ ডিজিটের পাসওয়ার্ড" required autocomplete="current-password" value="">
+          </div>
+          <button type="submit" id="auth-submit-btn" class="btn btn-primary w-full">লগইন</button>
+        </form>
+        <p class="text-xs text-muted" style="margin-top:12px;text-align:center">
+          এডমিন প্যানেলে প্রবেশ করতে এডমিন ইমেইল দিয়ে সাইন ইন করুন।
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYMENT CHECKOUT MODAL -->
+  <div id="payment-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="payment-modal-title">পেমেন্ট সম্পন্ন করুন</h3>
+        <button class="modal-close" onclick="closePaymentModal()" aria-label="বন্ধ করুন">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="selected-plan-summary">
+          <span class="plan-name" id="modal-plan-name" style="font-weight:700">Creator Pro</span>
+          <span class="plan-price" id="modal-plan-price" style="font-weight:800;color:var(--apple-green-dark)">৳650</span>
+        </div>
+
+        <p class="text-xs text-muted" style="margin-bottom:6px">নিচের নাম্বারে 'Send Money' করুন:</p>
+        <div class="merchant-numbers">
+          <div class="m-number">
+            <span>bKash Personal: <strong>01712345678</strong></span>
+            <button type="button" class="btn-copy" onclick="copyNumber('01712345678')">কপি</button>
+          </div>
+          <div class="m-number">
+            <span>Nagad Personal: <strong>01812345678</strong></span>
+            <button type="button" class="btn-copy" onclick="copyNumber('01812345678')">কপি</button>
+          </div>
+        </div>
+
+        <form id="payment-form" onsubmit="submitPaymentRequest(event)">
+          <div class="form-group">
+            <label for="pay-method">পেমেন্ট মেথড</label>
+            <select id="pay-method" required>
+              <option value="bKash">bKash</option>
+              <option value="Nagad">Nagad</option>
+              <option value="Rocket">Rocket</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="pay-sender-phone">প্রেরক নাম্বার (Sender Phone)</label>
+            <input type="tel" id="pay-sender-phone" placeholder="01XXXXXXXXX" pattern="01[0-9]{9}" required autocomplete="tel">
+          </div>
+          <div class="form-group">
+            <label for="pay-trx-id">Transaction ID (TrxID)</label>
+            <input type="text" id="pay-trx-id" placeholder="যেমন: 9J8AK82L1" required autocomplete="off">
+          </div>
+          <button type="submit" id="btn-submit-pay" class="btn btn-primary w-full">রিকোয়েস্ট পাঠান</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- VOICE SELECTOR MODAL -->
+  <div id="voice-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="voice-modal-title">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="voice-modal-title">এআই ভয়েস নির্বাচন করুন</h3>
+        <button class="modal-close" onclick="closeVoiceModal()" aria-label="বন্ধ করুন">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Category Filter Chips -->
+        <div class="filter-chips-row" id="modal-category-filters">
+          <button class="filter-chip active" onclick="filterModalVoices('All')">সব ভয়েস</button>
+          <button class="filter-chip" onclick="filterModalVoices('Bengali')">Bengali</button>
+          <button class="filter-chip" onclick="filterModalVoices('News')">News</button>
+          <button class="filter-chip" onclick="filterModalVoices('Story')">Story</button>
+          <button class="filter-chip" onclick="filterModalVoices('Islamic')">Islamic</button>
+          <button class="filter-chip" onclick="filterModalVoices('English')">English</button>
+        </div>
+        <div id="modal-voice-list" class="voice-picker-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT ARCHITECTURE ================= -->
+  <script>
+    /**
+     * ============================================================
+     * ZONIXAI PRODUCTION JAVASCRIPT ARCHITECTURE
+     * ============================================================
+     * Includes:
+     * - Server/API based Speech Generation (No local SpeechSynthesis)
+     * - Robust Audio Normalization, In-Memory Object URL management
+     * - Professional Audio Player with MP3 Download
+     * - Double-click and Credit Race-Condition Protection
+     * - LocalStorage Abstraction & IndexedDB for Generated Audio
+     * - Dynamic Admin Dashboard & Role-based Access Control
+     * - Centralized Safe Modal Management
+     * - XSS Prevention and Safe DOM textContent handling
+     */
+
+    // Configuration Constant for ZonixAi Backend Speech Engine
+    // Set your backend URL or Cloud Function endpoint here
+    const VOICE_API_URL = "";
+
+    const STORAGE_KEYS = {
+      HISTORY: "zonixai_generation_history",
+      TRANSACTIONS: "zonixai_transactions",
+      VOICES: "zonixai_voices",
+      USER: "zonixai_user"
+    };
+
+    // Default Seed Voices (Preserved with accurate spelling 'ভয়েস')
+    const DEFAULT_VOICES = [
+      { id: "arif_news", name: "Arif (News)", nameBn: "আরিফ (খবর ও ধারাভাষ্য)", category: "News", gender: "Male" },
+      { id: "sumona_story", name: "Sumona (Storyteller)", nameBn: "সুমনা (গল্প ও উপন্যাস)", category: "Story", gender: "Female" },
+      { id: "hasan_islamic", name: "Hasan (Islamic Lecture)", nameBn: "হাসান (ইসলামিক বক্তব্য)", category: "Islamic", gender: "Male" },
+      { id: "tania_casual", name: "Tania (YouTube & Vlogs)", nameBn: "তানিয়া (ইউটিউব ও ব্লগ)", category: "Bengali", gender: "Female" },
+      { id: "alex_english", name: "Alex (English Pro)", nameBn: "অ্যালেক্স (আন্তর্জাতিক কণ্ঠ)", category: "English", gender: "Male" }
+    ];
+
+    const packagesList = [
+      { id: "pkg_free", name: "Free Trial", price: 0, credits: 5000, duration: "৩০ দিন", featured: false, features: ["৫,০০০ ক্যারেক্টার লিমিট", "স্ট্যান্ডার্ড ভয়েস অ্যাক্সেস", "MP3 ডাউনলোড"] },
+      { id: "pkg_starter", name: "Starter Pack", price: 250, credits: 25000, duration: "৩০ দিন", featured: false, features: ["২৫,০০০ ক্যারেক্টার লিমিট", "সকল স্ট্যান্ডার্ড ভয়েস", "এইচডি অডিও"] },
+      { id: "pkg_creator", name: "Creator Pro", price: 650, credits: 75000, duration: "৬০ দিন", featured: true, features: ["৭৫,০০০ ক্যারেক্টার লিমিট", "সকল আল্ট্রা ভয়েস", "কমার্শিয়াল লাইসেন্স"] },
+      { id: "pkg_vip", name: "Enterprise VIP", price: 1500, credits: 200000, duration: "আনলিমিটেড", featured: false, features: ["২,০০,০০০ ক্যারেক্টার লিমিট", "আনলিমিটেড স্পিড", "২৪/৭ ভিআইপি সাপোর্ট"] }
+    ];
+
+    // State Variables
+    let currentUser = null;
+    let voicesList = [];
+    let selectedVoice = null;
+    let transactions = [];
+    let generationHistory = [];
+    let selectedPackageForPay = packagesList[2];
+    let modalCategoryFilter = "All";
+    let isGenerating = false;
+    let isSubmittingPayment = false;
+    let activeAudioUrl = null;
+    let activeAudioBlob = null;
+    let toastTimer = null;
+
+    // IndexedDB helper for permanent audio storage across reloads
+    let dbInstance = null;
+    const DB_NAME = "ZonixAiDB";
+    const DB_STORE = "audio_store";
+
+    function initIndexedDB() {
+      return new Promise((resolve) => {
+        if (!window.indexedDB) {
+          resolve(null);
+          return;
+        }
+        const request = indexedDB.open(DB_NAME, 1);
+        request.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(DB_STORE)) {
+            db.createObjectStore(DB_STORE, { keyPath: "id" });
+          }
+        };
+        request.onsuccess = (e) => {
+          dbInstance = e.target.result;
+          resolve(dbInstance);
+        };
+        request.onerror = () => resolve(null);
+      });
+    }
+
+    function saveAudioToDb(id, blob) {
+      if (!dbInstance) return;
+      try {
+        const tx = dbInstance.transaction(DB_STORE, "readwrite");
+        const store = tx.objectStore(DB_STORE);
+        store.put({ id: id, blob: blob, timestamp: Date.now() });
+      } catch (err) {
+        console.warn("Could not save audio to IndexedDB:", err);
+      }
+    }
+
+    function getAudioFromDb(id) {
+      return new Promise((resolve) => {
+        if (!dbInstance) {
+          resolve(null);
+          return;
+        }
+        try {
+          const tx = dbInstance.transaction(DB_STORE, "readonly");
+          const store = tx.objectStore(DB_STORE);
+          const req = store.get(id);
+          req.onsuccess = () => resolve(req.result ? req.result.blob : null);
+          req.onerror = () => resolve(null);
+        } catch {
+          resolve(null);
+        }
+      });
+    }
+
+    function deleteAudioFromDb(id) {
+      if (!dbInstance) return;
+      try {
+        const tx = dbInstance.transaction(DB_STORE, "readwrite");
+        const store = tx.objectStore(DB_STORE);
+        store.delete(id);
+      } catch (err) {
+        console.warn("Could not delete from DB:", err);
+      }
+    }
+
+    function clearAudioDb() {
+      if (!dbInstance) return;
+      try {
+        const tx = dbInstance.transaction(DB_STORE, "readwrite");
+        tx.objectStore(DB_STORE).clear();
+      } catch (err) {
+        console.warn("Could not clear DB:", err);
+      }
+    }
+
+    // Safe Storage Wrappers
+    function safeGetJson(key, defaultValue) {
+      try {
+        const val = localStorage.getItem(key);
+        if (!val) return defaultValue;
+        return JSON.parse(val);
+      } catch (err) {
+        console.warn(`Corrupted storage item [${key}], resetting to default.`);
+        return defaultValue;
+      }
+    }
+
+    function safeSetJson(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (err) {
+        console.error(`Failed to write to localStorage for [${key}]:`, err);
+      }
+    }
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(str) {
+      if (!str) return "";
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function sanitizeFilename(name) {
+      return (name || "audio").replace(/[^a-zA-Z0-9_-]/g, "_").toLowerCase();
+    }
+
+    // App Initialization
+    window.addEventListener("DOMContentLoaded", async () => {
+      await initIndexedDB();
+
+      // Load User State
+      currentUser = safeGetJson(STORAGE_KEYS.USER, null);
+
+      // Load Voices
+      voicesList = safeGetJson(STORAGE_KEYS.VOICES, DEFAULT_VOICES);
+      if (!Array.isArray(voicesList) || voicesList.length === 0) {
+        voicesList = [...DEFAULT_VOICES];
+      }
+      selectedVoice = voicesList[0];
+
+      // Load Transactions
+      transactions = safeGetJson(STORAGE_KEYS.TRANSACTIONS, []);
+
+      // Load Generation History
+      generationHistory = safeGetJson(STORAGE_KEYS.HISTORY, []);
+
+      // Render Everything
+      renderVoices();
+      renderPackages();
+      setupStudioCounters();
+      updateUserUI();
+      updateAdminVisibility();
+      loadAdminStats();
+      renderGenerationHistory();
+      setupAudioPlayerEvents();
+      setupModalAccessibility();
+    });
+
+    // Toast Notification System
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById("apple-toast");
+      const text = document.getElementById("apple-toast-text");
+      text.innerText = msg;
+      toast.classList.toggle("error-toast", isError);
+      toast.classList.add("show");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 3200);
+    }
+
+    // Auth & User State
+    function updateUserUI() {
+      const loginBtn = document.getElementById("login-btn");
+      const userBadge = document.getElementById("user-badge");
+      const userNameEl = document.getElementById("header-user-name");
+      const userCreditsEl = document.getElementById("header-user-credits");
+      const userAvatarEl = document.getElementById("user-avatar-text");
+
+      if (currentUser) {
+        loginBtn.classList.add("hidden");
+        userBadge.classList.remove("hidden");
+        userNameEl.innerText = currentUser.name || "গ্রাহক";
+        userCreditsEl.innerText = `${(currentUser.credits || 0).toLocaleString()} Cr`;
+        const initial = (currentUser.name || "U").trim().charAt(0).toUpperCase();
+        userAvatarEl.innerText = initial;
+      } else {
+        loginBtn.classList.remove("hidden");
+        userBadge.classList.add("hidden");
+      }
+      updateAdminVisibility();
+    }
+
+    function updateAdminVisibility() {
+      const adminNavTab = document.getElementById("nav-tab-admin");
+      const isAdmin = currentUser && currentUser.role === "admin";
+      if (isAdmin) {
+        adminNavTab.classList.remove("hidden");
+      } else {
+        adminNavTab.classList.add("hidden");
+      }
+    }
+
+    function quickGuestLogin() {
+      currentUser = {
+        id: "usr_guest_" + Math.random().toString(36).substring(2, 8),
+        name: "ডেমো গ্রাহক",
+        email: "demo.user@zonixai.com",
+        credits: 25000,
+        role: "user"
+      };
+      safeSetJson(STORAGE_KEYS.USER, currentUser);
+      updateUserUI();
+      closeAuthModal();
+      showToast("স্বাগতম! আপনি সাধারণ ইউজার হিসেবে লগইন করেছেন।");
+    }
+
+    function handleEmailAuth(e) {
+      e.preventDefault();
+      const emailInput = document.getElementById("auth-email").value.trim().toLowerCase();
+      const passwordInput = document.getElementById("auth-password").value;
+
+      if (!emailInput || !passwordInput) {
+        showToast("ইমেইল ও পাসওয়ার্ড প্রদান করুন", true);
+        return;
+      }
+      if (passwordInput.length < 6) {
+        showToast("পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে", true);
+        return;
+      }
+
+      // Explicit Admin vs Normal User Handling
+      const isAdmin = emailInput.includes("admin") || emailInput === "riyad.admin@zonixai.com";
+      const displayName = isAdmin ? "অ্যাডমিন রিয়াদ" : emailInput.split("@")[0];
+
+      currentUser = {
+        id: "usr_" + Math.random().toString(36).substring(2, 9),
+        name: displayName,
+        email: emailInput,
+        credits: isAdmin ? 100000 : 25000,
+        role: isAdmin ? "admin" : "user"
+      };
+
+      safeSetJson(STORAGE_KEYS.USER, currentUser);
+      updateUserUI();
+      closeAuthModal();
+
+      document.getElementById("auth-email").value = "";
+      document.getElementById("auth-password").value = "";
+
+      if (isAdmin) {
+        showToast("স্বাগতম এডমিন! এডমিন প্যানেল সক্রিয় করা হয়েছে।");
+      } else {
+        showToast("স্বাগতম! আপনি সফলভাবে লগইন করেছেন।");
+      }
+    }
+
+    function handleUserBadgeClick() {
+      if (!currentUser) return;
+      const roleText = currentUser.role === "admin" ? " (এডমিন)" : "";
+      if (confirm(`${currentUser.name}${roleText}\nআপনি কি লগআউট করতে চান?`)) {
+        currentUser = null;
+        localStorage.removeItem(STORAGE_KEYS.USER);
+        updateUserUI();
+        showToast("আপনি লগআউট করেছেন");
+        // If current screen is admin, redirect to home
+        const adminScreen = document.getElementById("screen-admin");
+        if (adminScreen && adminScreen.classList.contains("active")) {
+          switchTab("home");
+        }
+      }
+    }
+
+    // Screen Switching & Protected Navigation
+    function switchTab(tabId) {
+      if (tabId === "admin") {
+        if (!currentUser || currentUser.role !== "admin") {
+          showToast("এই বিভাগটি শুধুমাত্র এডমিনদের জন্য।", true);
+          return;
+        }
+      }
+
+      document.querySelectorAll(".nav-tab").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === tabId);
+      });
+      document.querySelectorAll(".screen-view").forEach(screen => {
+        screen.classList.remove("active");
+      });
+      const activeScreen = document.getElementById(`screen-${tabId}`);
+      if (activeScreen) {
+        activeScreen.classList.add("active");
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      if (tabId === "admin") {
+        loadAdminStats();
+      }
+    }
+
+    // Voice Rendering & Selection
+    function renderVoices() {
+      // Home slider
+      const slider = document.getElementById("home-voices-list");
+      slider.innerHTML = voicesList.map(v => `
+        <div class="voice-card-mini" onclick="selectVoiceAndGo('${escapeHtml(v.id)}')">
+          <div class="voice-avatar-icon" aria-hidden="true">🎙️</div>
+          <div class="voice-mini-name">${escapeHtml(v.nameBn)}</div>
+          <div class="voice-mini-cat">${escapeHtml(v.category)} • ${escapeHtml(v.gender)}</div>
+        </div>
+      `).join("");
+
+      const homeVoicesStat = document.getElementById("home-stat-voices");
+      if (homeVoicesStat) homeVoicesStat.innerText = `${voicesList.length}+`;
+
+      // Active voice update in Studio
+      if (selectedVoice) {
+        const voiceNameEl = document.getElementById("current-voice-name");
+        if (voiceNameEl) voiceNameEl.innerText = selectedVoice.nameBn;
+
+        const voiceTagsEl = document.getElementById("voice-tags");
+        if (voiceTagsEl) {
+          voiceTagsEl.innerHTML = `
+            <span class="tag tag-indigo">${escapeHtml(selectedVoice.category)}</span>
+            <span class="tag tag-purple">${escapeHtml(selectedVoice.gender)}</span>
+            <span class="tag tag-emerald">সক্রিয়</span>
+          `;
+        }
+      }
+
+      renderModalVoiceList();
+    }
+
+    function renderModalVoiceList() {
+      const modalList = document.getElementById("modal-voice-list");
+      const filtered = modalCategoryFilter === "All"
+        ? voicesList
+        : voicesList.filter(v => (v.category || "").toLowerCase() === modalCategoryFilter.toLowerCase());
+
+      if (filtered.length === 0) {
+        modalList.innerHTML = `<div class="empty-placeholder">এই ক্যাটাগরিতে কোনো ভয়েস পাওয়া যায়নি।</div>`;
+        return;
+      }
+
+      modalList.innerHTML = filtered.map(v => `
+        <div class="voice-pick-item ${selectedVoice && selectedVoice.id === v.id ? 'active' : ''}" onclick="selectVoice('${escapeHtml(v.id)}')">
+          <div class="voice-avatar-icon" style="width:38px;height:38px;font-size:17px;margin-bottom:0" aria-hidden="true">🎙️</div>
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:14px;color:var(--text-main)">${escapeHtml(v.nameBn)}</div>
+            <div style="font-size:11px;color:var(--text-secondary)">${escapeHtml(v.category)} • ${escapeHtml(v.gender)}</div>
+          </div>
+          ${selectedVoice && selectedVoice.id === v.id ? '<span style="color:var(--apple-blue);font-weight:800">✓</span>' : ''}
+        </div>
+      `).join("");
+    }
+
+    function filterModalVoices(category) {
+      modalCategoryFilter = category;
+      document.querySelectorAll("#modal-category-filters .filter-chip").forEach(chip => {
+        chip.classList.toggle("active", chip.innerText.trim().toLowerCase() === (category === "All" ? "সব ভয়েস" : category).toLowerCase());
+      });
+      renderModalVoiceList();
+    }
+
+    function selectVoiceAndGo(id) {
+      selectVoice(id);
+      switchTab("studio");
+    }
+
+    function selectVoice(id) {
+      const found = voicesList.find(v => v.id === id);
+      if (found) {
+        selectedVoice = found;
+        renderVoices();
+        closeVoiceModal();
+        showToast(`ভয়েস নির্বাচিত: ${found.nameBn}`);
+      }
+    }
+
+    // Quick Script Presets with Category Filter
+    function handleQuickScript(text, category) {
+      const textarea = document.getElementById("studio-text");
+      textarea.value = text;
+      textarea.dispatchEvent(new Event("input"));
+
+      // Find matching voice in this category
+      const matchingVoice = voicesList.find(v => (v.category || "").toLowerCase() === category.toLowerCase());
+      if (matchingVoice) {
+        selectedVoice = matchingVoice;
+        renderVoices();
+        showToast(`${category} স্ক্রিপ্ট ও ${matchingVoice.nameBn} ভয়েস সিলেক্ট করা হয়েছে`);
+      } else {
+        showToast("স্ক্রিপ্ট টেমপ্লেট যুক্ত করা হয়েছে");
+      }
+    }
+
+    function setupStudioCounters() {
+      const textarea = document.getElementById("studio-text");
+      const charSpan = document.getElementById("char-count");
+      const credSpan = document.getElementById("credit-cost");
+      const speed = document.getElementById("speed-slider");
+      const pitch = document.getElementById("pitch-slider");
+
+      textarea.addEventListener("input", () => {
+        const len = textarea.value.length;
+        charSpan.innerText = `${len} অক্ষর`;
+        credSpan.innerText = `খরচ: ${len} ক্রেডিট`;
+      });
+
+      speed.addEventListener("input", (e) => {
+        document.getElementById("speed-val").innerText = `${parseFloat(e.target.value).toFixed(1)}x`;
+      });
+      pitch.addEventListener("input", (e) => {
+        document.getElementById("pitch-val").innerText = `${parseFloat(e.target.value).toFixed(1)}x`;
+      });
+    }
+
+    // ============================================================
+    // PRODUCTION AUDIO API & NORMALIZATION (NO LOCAL SPEECH SYNTHESIS)
+    // ============================================================
+
+    // Normalizes varied backend response formats (Blob, base64, JSON with URL)
+    async function normalizeAudioResponse(response) {
+      const contentType = response.headers.get("Content-Type") || "";
+
+      if (contentType.includes("audio/") || contentType.includes("application/octet-stream")) {
+        const blob = await response.blob();
+        if (blob.size === 0) throw new Error("EMPTY_AUDIO_DATA");
+        return blob;
+      }
+
+      if (contentType.includes("application/json")) {
+        const data = await response.json();
+        if (!data) throw new Error("EMPTY_JSON_DATA");
+
+        // 1. Direct Audio URL
+        const audioUrl = data.audioUrl || data.url || data.downloadUrl;
+        if (audioUrl && typeof audioUrl === "string") {
+          const fetched = await fetch(audioUrl);
+          if (!fetched.ok) throw new Error("FAILED_FETCH_AUDIO_URL");
+          return await fetched.blob();
+        }
+
+        // 2. Base64 Audio Content
+        const base64Data = data.audioContent || data.audioBase64 || data.audio;
+        if (base64Data && typeof base64Data === "string") {
+          return base64ToBlob(base64Data, "audio/mp3");
+        }
+
+        throw new Error("UNRECOGNIZED_JSON_PAYLOAD");
+      }
+
+      // Fallback try reading as blob
+      const fallbackBlob = await response.blob();
+      if (fallbackBlob.size > 0) return fallbackBlob;
+
+      throw new Error("UNKNOWN_AUDIO_RESPONSE_TYPE");
+    }
+
+    function base64ToBlob(base64Str, mimeType = "audio/mp3") {
+      const cleanBase64 = base64Str.replace(/^data:audio\/\w+;base64,/, "");
+      const byteCharacters = atob(cleanBase64);
+      const byteArrays = [];
+      const sliceSize = 512;
+      for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+        const slice = byteCharacters.slice(offset, offset + sliceSize);
+        const byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) {
+          byteNumbers[i] = slice.charCodeAt(i);
+        }
+        byteArrays.push(new Uint8Array(byteNumbers));
+      }
+      return new Blob(byteArrays, { type: mimeType });
+    }
+
+    // Call ZonixAi Speech API with timeout and headers
+    async function callZonixAiSpeechApi(text, voice, speed, pitch) {
+      if (!VOICE_API_URL) {
+        throw new Error("API_URL_NOT_CONFIGURED");
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+      try {
+        const response = await fetch(VOICE_API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "audio/mpeg, audio/wav, audio/ogg, application/json, */*"
+          },
+          body: JSON.stringify({
+            text: text,
+            voiceId: voice.id,
+            voiceName: voice.name,
+            category: voice.category,
+            speed: parseFloat(speed) || 1.0,
+            pitch: parseFloat(pitch) || 1.0
+          }),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(`HTTP_${response.status}`);
+        }
+
+        return await normalizeAudioResponse(response);
+      } catch (err) {
+        clearTimeout(timeoutId);
+        throw err;
+      }
+    }
+
+    // Generate Speech Workflow
+    async function generateSpeech() {
+      if (isGenerating) return;
+
+      const textarea = document.getElementById("studio-text");
+      const text = textarea.value.trim();
+      const speedVal = document.getElementById("speed-slider").value;
+      const pitchVal = document.getElementById("pitch-slider").value;
+
+      if (!text) {
+        showToast("অনুগ্রহ করে কোনো টেক্সট লিখুন!", true);
+        return;
+      }
+
+      if (!selectedVoice) {
+        showToast("অনুগ্রহ করে একটি ভয়েস নির্বাচন করুন!", true);
+        return;
+      }
+
+      const charCost = text.length;
+
+      // Credit Validation
+      if (currentUser && (currentUser.credits || 0) < charCost) {
+        showToast("এই অডিও তৈরি করার জন্য পর্যাপ্ত ক্রেডিট নেই।", true);
+        return;
+      }
+
+      // Enter Loading State
+      isGenerating = true;
+      const btnGenerate = document.getElementById("btn-generate");
+      const btnPreview = document.getElementById("btn-preview");
+      const originalGenerateText = btnGenerate.innerHTML;
+      btnGenerate.disabled = true;
+      btnPreview.disabled = true;
+      btnGenerate.innerHTML = `<span class="spinner"></span> অডিও তৈরি হচ্ছে...`;
+
+      try {
+        const audioBlob = await callZonixAiSpeechApi(text, selectedVoice, speedVal, pitchVal);
+
+        // Validate resulting audio
+        if (!audioBlob || audioBlob.size === 0) {
+          throw new Error("INVALID_AUDIO_DATA");
+        }
+
+        // Release old object URL
+        if (activeAudioUrl) {
+          URL.revokeObjectURL(activeAudioUrl);
+          activeAudioUrl = null;
+        }
+
+        activeAudioBlob = audioBlob;
+        activeAudioUrl = URL.createObjectURL(audioBlob);
+
+        // Setup Player
+        const nativeAudio = document.getElementById("native-audio");
+        nativeAudio.src = activeAudioUrl;
+        nativeAudio.load();
+
+        const playerCard = document.getElementById("player-card");
+        playerCard.classList.remove("hidden");
+        document.getElementById("generated-time").innerText = new Date().toLocaleTimeString("bn-BD");
+        document.getElementById("player-status-msg").innerText = "AI Voice Engine থেকে অডিও তৈরি হয়েছে";
+
+        // Deduct credits exactly once on success
+        if (currentUser) {
+          currentUser.credits = Math.max(0, (currentUser.credits || 0) - charCost);
+          safeSetJson(STORAGE_KEYS.USER, currentUser);
+          updateUserUI();
+        }
+
+        // Persist to History
+        const historyId = "gen_" + Date.now();
+        const historyItem = {
+          id: historyId,
+          text: text,
+          voiceId: selectedVoice.id,
+          voiceName: selectedVoice.nameBn,
+          category: selectedVoice.category,
+          charCount: charCost,
+          speed: speedVal,
+          pitch: pitchVal,
+          timestamp: new Date().toISOString()
+        };
+
+        saveAudioToDb(historyId, audioBlob);
+        generationHistory.unshift(historyItem);
+        safeSetJson(STORAGE_KEYS.HISTORY, generationHistory);
+        renderGenerationHistory();
+
+        showToast("✓ অডিও সফলভাবে তৈরি হয়েছে!");
+        
+        // Auto play generated audio
+        nativeAudio.play().catch(() => {
+          // Browser autoplay policy might require user click
+        });
+
+      } catch (err) {
+        console.error("Speech generation failure:", err);
+        let errorMsg = "অডিও তৈরি করা যায়নি। কিছুক্ষণ পর আবার চেষ্টা করুন।";
+
+        if (err.message === "API_URL_NOT_CONFIGURED") {
+          errorMsg = "ভয়েস এপিআই সার্ভার কনফিগারেশন প্রয়োজন (VOICE_API_URL সেট করুন)।";
+        } else if (err.name === "AbortError") {
+          errorMsg = "সার্ভার রেসপন্স সময় অতিক্রম করেছে। আবার চেষ্টা করুন।";
+        } else if (err.message && err.message.startsWith("HTTP_")) {
+          errorMsg = `সার্ভার সমস্যা (${err.message})। আবার চেষ্টা করুন।`;
+        } else if (!navigator.onLine) {
+          errorMsg = "নেটওয়ার্ক সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।";
+        }
+
+        showToast(errorMsg, true);
+      } finally {
+        isGenerating = false;
+        btnGenerate.disabled = false;
+        btnPreview.disabled = false;
+        btnGenerate.innerHTML = originalGenerateText;
+      }
+    }
+
+    // Audio Preview (Directly calls the API or notifies user)
+    async function previewVoice() {
+      const textarea = document.getElementById("studio-text");
+      const sampleText = textarea.value.trim().slice(0, 45) || `স্বাগতম! আমি ${selectedVoice.nameBn}`;
+      if (!VOICE_API_URL) {
+        showToast(`ভয়েস প্রিভিউ এর জন্য VOICE_API_URL কনফিগার করুন। নির্বাচিত: ${selectedVoice.nameBn}`, true);
+        return;
+      }
+      generateSpeech();
+    }
+
+    // Professional Audio Player Controls
+    function setupAudioPlayerEvents() {
+      const nativeAudio = document.getElementById("native-audio");
+      const progress = document.getElementById("audio-progress");
+      const curTime = document.getElementById("audio-current-time");
+      const durTime = document.getElementById("audio-duration");
+      const toggleBtn = document.getElementById("btn-audio-toggle");
+
+      nativeAudio.addEventListener("timeupdate", () => {
+        if (!nativeAudio.duration) return;
+        const pct = (nativeAudio.currentTime / nativeAudio.duration) * 100;
+        progress.value = pct;
+        curTime.innerText = formatAudioTime(nativeAudio.currentTime);
+      });
+
+      nativeAudio.addEventListener("loadedmetadata", () => {
+        durTime.innerText = formatAudioTime(nativeAudio.duration);
+      });
+
+      nativeAudio.addEventListener("play", () => {
+        toggleBtn.innerText = "⏸";
+      });
+
+      nativeAudio.addEventListener("pause", () => {
+        toggleBtn.innerText = "▶";
+      });
+
+      nativeAudio.addEventListener("ended", () => {
+        toggleBtn.innerText = "▶";
+        progress.value = 0;
+      });
+    }
+
+    function toggleAudioPlayback() {
+      const nativeAudio = document.getElementById("native-audio");
+      if (!nativeAudio.src) return;
+      if (nativeAudio.paused) {
+        nativeAudio.play();
+      } else {
+        nativeAudio.pause();
+      }
+    }
+
+    function seekAudio(percent) {
+      const nativeAudio = document.getElementById("native-audio");
+      if (nativeAudio.duration) {
+        nativeAudio.currentTime = (percent / 100) * nativeAudio.duration;
+      }
+    }
+
+    function replayAudio() {
+      const nativeAudio = document.getElementById("native-audio");
+      if (!nativeAudio.src) return;
+      nativeAudio.currentTime = 0;
+      nativeAudio.play();
+    }
+
+    function formatAudioTime(seconds) {
+      if (isNaN(seconds) || seconds < 0) return "00:00";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+    }
+
+    function downloadCurrentAudio() {
+      if (!activeAudioBlob && !activeAudioUrl) {
+        showToast("ডাউনলোড করার জন্য কোনো অডিও পাওয়া যায়নি।", true);
+        return;
+      }
+      const voiceId = selectedVoice ? sanitizeFilename(selectedVoice.id) : "voice";
+      const filename = `ZonixAi_${voiceId}_${Date.now()}.mp3`;
+      triggerFileDownload(activeAudioBlob || activeAudioUrl, filename);
+      showToast("MP3 ফাইল ডাউনলোড শুরু হয়েছে");
+    }
+
+    function triggerFileDownload(blobOrUrl, filename) {
+      let downloadUrl = blobOrUrl;
+      let shouldRevoke = false;
+      if (blobOrUrl instanceof Blob) {
+        downloadUrl = URL.createObjectURL(blobOrUrl);
+        shouldRevoke = true;
+      }
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      if (shouldRevoke) {
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 2000);
+      }
+    }
+
+    // History UI & Management
+    function renderGenerationHistory() {
+      const historyList = document.getElementById("history-list");
+      const clearBtn = document.getElementById("btn-clear-history");
+
+      if (!generationHistory || generationHistory.length === 0) {
+        historyList.innerHTML = `<div class="empty-placeholder">এখনো কোনো অডিও তৈরি করা হয়নি</div>`;
+        clearBtn.classList.add("hidden");
+        return;
+      }
+
+      clearBtn.classList.remove("hidden");
+
+      historyList.innerHTML = generationHistory.map(item => {
+        const dateStr = item.timestamp ? new Date(item.timestamp).toLocaleDateString("bn-BD") : "";
+        return `
+          <div class="history-card" id="history-card-${escapeHtml(item.id)}">
+            <div class="history-header">
+              <div class="history-text-preview">"${escapeHtml(item.text.slice(0, 75))}${item.text.length > 75 ? '...' : ''}"</div>
+              <button class="history-btn-del" onclick="deleteHistoryItem('${escapeHtml(item.id)}')" title="মুছে ফেলুন" aria-label="মুছে ফেলুন">&times;</button>
+            </div>
+            <div class="history-meta-row">
+              <span><strong>${escapeHtml(item.voiceName || item.voiceId)}</strong> (${escapeHtml(item.category || '')})</span>
+              <span class="text-emerald">${escapeHtml(String(item.charCount))} অক্ষর • ${escapeHtml(dateStr)}</span>
+            </div>
+            <div class="history-actions">
+              <button class="btn btn-sm btn-secondary flex-1" onclick="playHistoryItem('${escapeHtml(item.id)}')">▶ প্লে করুন</button>
+              <button class="btn btn-sm btn-outline flex-1" onclick="downloadHistoryItem('${escapeHtml(item.id)}', '${escapeHtml(item.voiceId)}')">📥 MP3</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function playHistoryItem(id) {
+      const blob = await getAudioFromDb(id);
+      if (!blob) {
+        showToast("এই রেকর্ডের অডিও ফাইল সংরক্ষিত নেই।", true);
+        return;
+      }
+      if (activeAudioUrl) URL.revokeObjectURL(activeAudioUrl);
+      activeAudioBlob = blob;
+      activeAudioUrl = URL.createObjectURL(blob);
+
+      const nativeAudio = document.getElementById("native-audio");
+      nativeAudio.src = activeAudioUrl;
+      nativeAudio.load();
+      nativeAudio.play();
+
+      document.getElementById("player-card").classList.remove("hidden");
+      document.getElementById("player-status-msg").innerText = "হিস্ট্রি থেকে অডিও প্লে হচ্ছে";
+      showToast("অডিও প্লে হচ্ছে");
+    }
+
+    async function downloadHistoryItem(id, voiceId) {
+      const blob = await getAudioFromDb(id);
+      if (!blob) {
+        showToast("অডিও ফাইল সংরক্ষিত নেই।", true);
+        return;
+      }
+      const filename = `ZonixAi_${sanitizeFilename(voiceId)}_${Date.now()}.mp3`;
+      triggerFileDownload(blob, filename);
+      showToast("MP3 ডাউনলোড সম্পন্ন");
+    }
+
+    function deleteHistoryItem(id) {
+      generationHistory = generationHistory.filter(item => item.id !== id);
+      safeSetJson(STORAGE_KEYS.HISTORY, generationHistory);
+      deleteAudioFromDb(id);
+      renderGenerationHistory();
+      showToast("হিস্ট্রি আইটেম মুছে ফেলা হয়েছে");
+    }
+
+    function confirmClearHistory() {
+      if (confirm("আপনি কি সব হিস্ট্রি মুছে ফেলতে চান?")) {
+        generationHistory = [];
+        safeSetJson(STORAGE_KEYS.HISTORY, generationHistory);
+        clearAudioDb();
+        renderGenerationHistory();
+        showToast("সকল হিস্ট্রি মুছে ফেলা হয়েছে");
+      }
+    }
+
+    // Packages & Checkout
+    function renderPackages() {
+      const container = document.getElementById("packages-container");
+      container.innerHTML = packagesList.map(pkg => `
+        <div class="package-card ${pkg.featured ? 'featured' : ''}">
+          ${pkg.featured ? '<span class="package-badge">জনপ্রিয়</span>' : ''}
+          <h3 class="pkg-name">${escapeHtml(pkg.name)}</h3>
+          <div class="pkg-price-row">
+            <span class="pkg-price">৳${pkg.price}</span>
+            <span class="pkg-duration">/ ${escapeHtml(pkg.duration)}</span>
+          </div>
+          <ul class="pkg-features">
+            ${pkg.features.map(f => `<li><span class="check-circle" aria-hidden="true">✓</span> ${escapeHtml(f)}</li>`).join("")}
+          </ul>
+          <button class="btn ${pkg.featured ? 'btn-primary' : 'btn-soft-blue'} w-full" onclick="openCheckout('${escapeHtml(pkg.id)}')">
+            এখনই কিনুন
+          </button>
+        </div>
+      `).join("");
+    }
+
+    function openCheckout(pkgId) {
+      const pkg = packagesList.find(p => p.id === pkgId);
+      if (!pkg) return;
+
+      if (pkg.price === 0) {
+        if (!currentUser) {
+          showToast("ফ্রি ট্রায়াল চালুর জন্য আগে লগইন করুন", true);
+          openAuthModal();
+          return;
+        }
+        currentUser.credits = (currentUser.credits || 0) + pkg.credits;
+        safeSetJson(STORAGE_KEYS.USER, currentUser);
+        updateUserUI();
+        showToast("🎉 Free Trial সক্রিয় হয়েছে! ৫,০০০ ক্রেডিট যুক্ত হয়েছে।");
+        return;
+      }
+
+      selectedPackageForPay = pkg;
+      document.getElementById("modal-plan-name").innerText = pkg.name;
+      document.getElementById("modal-plan-price").innerText = `৳${pkg.price}`;
+      openModal("payment-modal");
+    }
+
+    // Payment Submission & Validation
+    function submitPaymentRequest(e) {
+      e.preventDefault();
+      if (isSubmittingPayment) return;
+
+      const method = document.getElementById("pay-method").value;
+      const phone = document.getElementById("pay-sender-phone").value.trim();
+      const trxId = document.getElementById("pay-trx-id").value.trim().toUpperCase();
+
+      // Validate selected package
+      if (!selectedPackageForPay) {
+        showToast("অনুগ্রহ করে প্যাকেজ নির্বাচন করুন", true);
+        return;
+      }
+
+      // Validate Bangladesh phone number (013-019XXXXXXXX)
+      const bdPhoneRegex = /^01[3-9]\d{8}$/;
+      if (!bdPhoneRegex.test(phone)) {
+        showToast("সঠিক ১১ ডিজিটের ফোন নাম্বার দিন (যেমন: 017XXXXXXXX)", true);
+        return;
+      }
+
+      // Validate TrxID
+      if (!trxId || trxId.length < 4) {
+        showToast("সঠিক Transaction ID (TrxID) লিখুন", true);
+        return;
+      }
+
+      // Prevent duplicate TrxID submission
+      const isDuplicateTrx = transactions.some(t => (t.transactionId || "").trim().toUpperCase() === trxId);
+      if (isDuplicateTrx) {
+        showToast("এই Transaction ID ইতোমধ্যে ব্যবহার করা হয়েছে।", true);
+        return;
+      }
+
+      isSubmittingPayment = true;
+      const btn = document.getElementById("btn-submit-pay");
+      btn.disabled = true;
+
+      const newTx = {
+        id: "tx_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
+        userId: currentUser ? (currentUser.id || currentUser.email) : "guest",
+        userName: currentUser ? currentUser.name : "সাধারণ গ্রাহক",
+        userEmail: currentUser ? currentUser.email : "guest@zonixai.com",
+        packageId: selectedPackageForPay.id,
+        packageName: selectedPackageForPay.name,
+        amount: Number(selectedPackageForPay.price),
+        credits: Number(selectedPackageForPay.credits),
+        paymentMethod: method,
+        senderPhone: phone,
+        transactionId: trxId,
+        status: "pending",
+        createdAt: new Date().toISOString()
+      };
+
+      transactions.unshift(newTx);
+      safeSetJson(STORAGE_KEYS.TRANSACTIONS, transactions);
+
+      showToast(`আপনার পেমেন্ট রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে! (TrxID: ${trxId})`);
+      closeModal("payment-modal");
+      document.getElementById("payment-form").reset();
+
+      loadAdminStats();
+
+      isSubmittingPayment = false;
+      btn.disabled = false;
+    }
+
+    function copyNumber(num) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(num).catch(() => {});
+      }
+      showToast("নাম্বার কপি করা হয়েছে: " + num);
+    }
+
+    // Dynamic Admin Dashboard & Transactions
+    function loadAdminStats() {
+      const voiceCountEl = document.getElementById("admin-voice-count");
+      if (voiceCountEl) voiceCountEl.innerText = voicesList.length;
+
+      const pendingCount = transactions.filter(t => t.status === "pending").length;
+      const pendingCountEl = document.getElementById("admin-pending-count");
+      if (pendingCountEl) pendingCountEl.innerText = pendingCount;
+
+      // Revenue: strictly calculate sum of approved transactions (no hardcoded offset!)
+      const approvedRevenue = transactions
+        .filter(t => t.status === "approved")
+        .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+
+      const totalRevEl = document.getElementById("admin-total-rev");
+      if (totalRevEl) totalRevEl.innerText = `৳${approvedRevenue.toLocaleString()}`;
+
+      renderAdminTransactions();
+    }
+
+    function renderAdminTransactions() {
+      const list = document.getElementById("admin-transactions-list");
+      if (!list) return;
+
+      if (transactions.length === 0) {
+        list.innerHTML = "<div class='empty-placeholder'>কোনো পেমেন্ট রিকোয়েস্ট নেই</div>";
+        return;
+      }
+
+      list.innerHTML = transactions.map(t => {
+        const timeStr = t.createdAt ? new Date(t.createdAt).toLocaleString("bn-BD") : "";
+        const statusClass = t.status === "approved" ? "tx-approved" : (t.status === "rejected" ? "tx-rejected" : "");
+        const statusBadge = t.status === "approved"
+          ? '<span class="badge">অনুমোদিত</span>'
+          : (t.status === "rejected" ? '<span class="badge" style="background:var(--apple-red-soft);color:var(--apple-red)">বাতিল</span>' : '<span class="badge badge-indigo">পেন্ডিং</span>');
+
+        return `
+          <div class="tx-card ${statusClass}">
+            <div class="tx-header">
+              <strong style="font-size:14px">${escapeHtml(t.packageName)} (৳${t.amount})</strong>
+              ${statusBadge}
+            </div>
+            <div class="tx-info">
+              গ্রাহক: <strong>${escapeHtml(t.userName)}</strong> (${escapeHtml(t.userEmail || '')})<br>
+              মেথড: <strong>${escapeHtml(t.paymentMethod)}</strong> • প্রেরক: <strong>${escapeHtml(t.senderPhone || 'N/A')}</strong><br>
+              TrxID: <strong style="color:var(--apple-blue-dark)">${escapeHtml(t.transactionId)}</strong><br>
+              তারিখ: ${escapeHtml(timeStr)}
+            </div>
+            ${t.status === 'pending' ? `
+              <div class="tx-actions">
+                <button class="btn btn-sm btn-primary flex-1" style="background:var(--apple-green)" onclick="approveTx('${escapeHtml(t.id)}')">অনুমোদন</button>
+                <button class="btn btn-sm btn-secondary flex-1" style="color:var(--apple-red)" onclick="rejectTx('${escapeHtml(t.id)}')">বাতিল</button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join("");
+    }
+
+    function approveTx(id) {
+      const tx = transactions.find(t => t.id === id);
+      if (!tx) return;
+
+      // Prevent approving already approved transactions
+      if (tx.status === "approved") {
+        showToast("এই ট্রানজেকশনটি ইতোমধ্যে অনুমোদিত!", true);
+        return;
+      }
+
+      tx.status = "approved";
+      safeSetJson(STORAGE_KEYS.TRANSACTIONS, transactions);
+
+      // If user is currently logged in and matches transaction, add credits immediately
+      if (currentUser && (currentUser.id === tx.userId || currentUser.email === tx.userEmail)) {
+        currentUser.credits = (currentUser.credits || 0) + (Number(tx.credits) || 0);
+        safeSetJson(STORAGE_KEYS.USER, currentUser);
+        updateUserUI();
+      }
+
+      loadAdminStats();
+      showToast("পেমেন্ট সফলভাবে অনুমোদিত হয়েছে এবং ক্রেডিট যুক্ত করা হয়েছে!");
+    }
+
+    function rejectTx(id) {
+      const tx = transactions.find(t => t.id === id);
+      if (!tx) return;
+
+      if (tx.status === "rejected") {
+        showToast("এই ট্রানজেকশনটি ইতোমধ্যে বাতিল করা হয়েছে!", true);
+        return;
+      }
+
+      tx.status = "rejected";
+      safeSetJson(STORAGE_KEYS.TRANSACTIONS, transactions);
+      loadAdminStats();
+      showToast("পেমেন্ট রিকোয়েস্ট বাতিল করা হয়েছে!");
+    }
+
+    function switchAdminTab(tab) {
+      document.getElementById("btn-tab-voices").classList.toggle("active", tab === 'voices');
+      document.getElementById("btn-tab-payments").classList.toggle("active", tab === 'payments');
+      document.getElementById("admin-voices-section").classList.toggle("hidden", tab !== 'voices');
+      document.getElementById("admin-payments-section").classList.toggle("hidden", tab !== 'payments');
+    }
+
+    function handleAddNewVoice(e) {
+      e.preventDefault();
+      const id = document.getElementById("voice-id-input").value.trim().toLowerCase();
+      const name = document.getElementById("voice-name-input").value.trim();
+      const nameBn = document.getElementById("voice-bn-input").value.trim();
+      const category = document.getElementById("voice-category-select").value;
+      const gender = document.getElementById("voice-gender-select").value;
+
+      if (!id || !name || !nameBn) {
+        showToast("সবগুলো তথ্য সঠিকভাবে পূরণ করুন", true);
+        return;
+      }
+
+      // Prevent duplicate voice ID
+      if (voicesList.some(v => v.id.toLowerCase() === id)) {
+        showToast("এই আইডি দিয়ে ইতোমধ্যে একটি ভয়েস বিদ্যমান!", true);
+        return;
+      }
+
+      const newVoice = { id, name, nameBn, category, gender };
+      voicesList.push(newVoice);
+      safeSetJson(STORAGE_KEYS.VOICES, voicesList);
+
+      renderVoices();
+      loadAdminStats();
+      showToast("নতুন ভয়েস সফলভাবে যুক্ত করা হয়েছে!");
+      e.target.reset();
+    }
+
+    // ============================================================
+    // CENTRALIZED SAFE MODAL SYSTEM
+    // ============================================================
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+      }
+    }
+
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.classList.add("hidden");
+        // Check if any modal is still open before restoring scroll
+        const openModals = document.querySelectorAll(".modal-overlay:not(.hidden)");
+        if (openModals.length === 0) {
+          document.body.style.overflow = "";
+        }
+      }
+    }
+
+    function closeAllModals() {
+      document.querySelectorAll(".modal-overlay").forEach(m => m.classList.add("hidden"));
+      document.body.style.overflow = "";
+    }
+
+    function openVoiceSelectorModal() { openModal("voice-modal"); }
+    function closeVoiceModal() { closeModal("voice-modal"); }
+
+    function openAuthModal() { openModal("auth-modal"); }
+    function closeAuthModal() { closeModal("auth-modal"); }
+
+    function closePaymentModal() { closeModal("payment-modal"); }
+
+    function setupModalAccessibility() {
+      // Close on clicking outside modal content
+      document.querySelectorAll(".modal-overlay").forEach(overlay => {
+        overlay.addEventListener("click", (e) => {
+          if (e.target === overlay) {
+            closeAllModals();
+          }
+        });
+      });
+
+      // Close on Escape key press
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closeAllModals();
+        }
+      });
+    }
+  </script>
+</body>
+</html>
